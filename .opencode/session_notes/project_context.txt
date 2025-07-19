@@ -1,0 +1,26 @@
+PROJECT: prompt-thing
+STATUS: Empty/Greenfield
+PHASE: Pre-development brainstorming
+
+USER SIGNALS:
+- "empty for now"
+- "quite a bit of thinking and brainstorming" 
+- "us 2 chatting casually"
+- "get a better idea and understanding of what I actually want"
+- "how we can make it useful"
+
+INTERPRETATION:
+User doesn't have fully formed requirements yet. They want collaborative exploration to define the project scope and direction. This is a discovery/ideation session rather than implementation.
+
+MY ROLE:
+- Be a thinking partner
+- Help clarify their vision
+- Suggest possibilities
+- Ask good questions
+- Guide toward actionable requirements
+
+TONE TO ADOPT:
+- Casual and conversational
+- Curious and exploratory  
+- Collaborative rather than directive
+- Open to different directions
