@@ -106,3 +106,88 @@ On prompt create:
 - File permissions on ~/.proompt/
 - No network exposure planned
 - Git repo integrity checks
+
+---
+
+# Configuration Validation Implementation (COMPLETED)
+
+## What Was Implemented
+
+Successfully replaced the monolithic `validate()` function with a modern, tag-based validation system using **go-playground/validator v10.27.0** (latest version).
+
+## Key Improvements
+
+### 1. Declarative Validation Tags
+- Moved validation rules from imperative code to declarative struct tags
+- Rules are now visible directly on field definitions
+- Easy to understand what each field requires
+
+### 2. Custom Validator for Complex Relationships
+- Created `database_exclusive` custom validator
+- Handles the "exactly one database type" business rule
+- Extensible pattern for future complex validations
+
+### 3. User-Friendly Error Messages
+- Custom error formatting converts technical validation errors to readable messages
+- Maps struct field paths to config file paths (e.g., `Config.Server.Port` → `server.port`)
+- Specific error messages for each validation type
+
+### 4. Comprehensive Test Coverage
+- Tests cover all validation scenarios
+- Validates both positive and negative cases
+- Ensures error messages are helpful
+
+## Code Structure
+
+### Struct Tags Used
+```go
+type Config struct {
+    Database Database `validate:"required,database_exclusive"`
+    Storage  Storage  `validate:"required"`
+    Server   Server   `validate:"required"`
+}
+
+type Server struct {
+    Host string `validate:"required"`
+    Port int    `validate:"required,min=1,max=65535"`
+}
+
+type TursoDatabase struct {
+    URL   string `validate:"required,url"`
+    Token string `validate:"required"`
+}
+```
+
+### Custom Validator
+```go
+func validateDatabaseExclusive(fl validator.FieldLevel) bool {
+    db := fl.Field().Interface().(Database)
+    localSet := db.Local != nil
+    tursoSet := db.Turso != nil
+    return localSet != tursoSet // XOR: exactly one must be set
+}
+```
+
+## Benefits Achieved
+
+1. **Maintainability**: Validation rules are declarative and close to field definitions
+2. **Scalability**: Easy to add new validation rules as config grows
+3. **Readability**: Clear what each field requires at a glance
+4. **Extensibility**: Custom validators handle any business logic
+5. **Error Quality**: User-friendly error messages with proper field paths
+6. **Performance**: Leverages optimized validation library
+7. **Standards**: Uses industry-standard validation approach
+
+## Future Extensions
+
+Adding new validation rules is now trivial:
+
+```go
+// New field with validation
+NewField string `validate:"required,email"`
+
+// New custom validator
+configValidator.RegisterValidation("custom_rule", validateCustomRule)
+```
+
+The validation system is now ready to scale with the project's growth without becoming unwieldy.
