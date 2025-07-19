@@ -1,8 +1,9 @@
-module github.com/dikka/proompt/server
+module github.com/dikkadev/proompt/server
 
 go 1.24.1
 
 require (
+	github.com/dikkadev/prettyslog v0.0.0-20241029122445-44f60ae978bd // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect

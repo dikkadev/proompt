@@ -19,7 +19,7 @@ help: ## Show this help message
 build: ## Build binary to build/proompt
 	@echo "$(BLUE)Building $(BINARY_NAME)...$(RESET)"
 	@mkdir -p $(BUILD_DIR)
-	@go build -o $(BUILD_DIR)/$(BINARY_NAME) ./$(CMD_DIR)
+	@go build -buildvcs=false -o $(BUILD_DIR)/$(BINARY_NAME) ./$(CMD_DIR)
 	@echo "$(GREEN)Build complete: $(BUILD_DIR)/$(BINARY_NAME)$(RESET)"
 
 test: test-unit test-integration ## Run all tests

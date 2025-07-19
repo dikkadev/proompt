@@ -2,14 +2,18 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"log"
+	"log/slog"
+	"os"
 
-	"github.com/dikka/proompt/server/internal/config"
-	"github.com/dikka/proompt/server/internal/db"
+	"github.com/dikkadev/proompt/server/internal/config"
+	"github.com/dikkadev/proompt/server/internal/db"
+	"github.com/dikkadev/proompt/server/internal/logging"
 )
 
 func main() {
+	// Set up prettyslog as the default logger
+	logging.SetDefault("proompt")
+
 	// Parse command line flags
 	configPath := flag.String("config", "", "Path to configuration file")
 	flag.Parse()
@@ -17,12 +21,14 @@ func main() {
 	// Load configuration
 	cfg, err := config.Load(*configPath)
 	if err != nil {
-		log.Fatal("Failed to load configuration:", err)
+		slog.Error("Failed to load configuration", "error", err)
+		os.Exit(1)
 	}
 
 	// Ensure necessary directories exist
 	if err := cfg.EnsureDirectories(); err != nil {
-		log.Fatal("Failed to create directories:", err)
+		slog.Error("Failed to create directories", "error", err)
+		os.Exit(1)
 	}
 
 	// Connect to database based on configuration
@@ -31,30 +37,37 @@ func main() {
 	case "local":
 		database, err = db.NewLocal(cfg.Database.Local.Path)
 		if err != nil {
-			log.Fatal("Failed to connect to local database:", err)
+			slog.Error("Failed to connect to local database", "error", err)
+			os.Exit(1)
 		}
 
 		// Run migrations for local database
 		if err := database.RunMigrations(cfg.Database.Local.Migrations); err != nil {
-			log.Fatal("Failed to run migrations:", err)
+			slog.Error("Failed to run migrations", "error", err)
+			os.Exit(1)
 		}
 
 	case "turso":
 		database, err = db.NewTurso(cfg.Database.Turso.URL, cfg.Database.Turso.Token)
 		if err != nil {
-			log.Fatal("Failed to connect to Turso database:", err)
+			slog.Error("Failed to connect to Turso database", "error", err)
+			os.Exit(1)
 		}
 
 	default:
-		log.Fatal("Unknown database type:", cfg.DatabaseType())
+		slog.Error("Unknown database type", "type", cfg.DatabaseType())
+		os.Exit(1)
 	}
 	defer database.Close()
 
-	fmt.Println("Proompt server initialized successfully")
-	fmt.Printf("Database type: %s\n", cfg.DatabaseType())
+	slog.Info("Proompt server initialized successfully",
+		"database_type", cfg.DatabaseType(),
+		"repos_dir", cfg.Storage.ReposDir,
+		"server_host", cfg.Server.Host,
+		"server_port", cfg.Server.Port,
+	)
+
 	if cfg.Database.Local != nil {
-		fmt.Printf("Database path: %s\n", cfg.Database.Local.Path)
+		slog.Info("Local database configuration", "path", cfg.Database.Local.Path)
 	}
-	fmt.Printf("Repos: %s\n", cfg.Storage.ReposDir)
-	fmt.Printf("Server: %s:%d\n", cfg.Server.Host, cfg.Server.Port)
 }
