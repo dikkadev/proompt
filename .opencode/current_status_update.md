@@ -63,6 +63,23 @@ Still genuinely excited about this project. The thoughtful design decisions and 
 
 Looking forward to implementing the git integration - that's going to be the most technically interesting part.
 
-### 🔍 NEXT SESSION FOCUS
+### 🔍 CURRENT SESSION FOCUS - REPOSITORY & GIT INTEGRATION
 
-The next development task should focus on implementing the repository layer with basic CRUD operations. This will provide the foundation for all higher-level features while maintaining the clean separation between data access and business logic.
+**ARCHITECTURE CONFIRMED:**
+- Single git repo with orphan branches per entity
+- Worktrees: `prompts/{uuid}/` and `snippets/{uuid}/` 
+- On-demand worktree creation/cleanup
+- One `content.json` file per branch
+- Auto-generated commit messages with optional user notes
+- Configured paths via afero.Fs (not hardcoded)
+- go-git library for cgo-free implementation
+
+**IMPLEMENTATION ORDER:**
+1. Repository interfaces design
+2. Add go-git dependency  
+3. Git service with worktree management
+4. Repository CRUD implementation
+5. Atomic DB + git operations
+6. Testing infrastructure
+
+**READY FOR IMPLEMENTATION** ✅
