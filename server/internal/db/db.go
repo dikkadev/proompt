@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
 )
@@ -14,11 +15,11 @@ type DB struct {
 	*sqlx.DB
 }
 
-// New creates a new database connection and runs migrations
-func New(dbPath string) (*DB, error) {
+// NewLocal creates a new local SQLite database connection
+func NewLocal(dbPath string) (*DB, error) {
 	db, err := sqlx.Connect("sqlite", dbPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("failed to connect to local database: %w", err)
 	}
 
 	// Enable foreign keys
@@ -27,6 +28,12 @@ func New(dbPath string) (*DB, error) {
 	}
 
 	return &DB{DB: db}, nil
+}
+
+// NewTurso creates a new Turso database connection
+func NewTurso(url, token string) (*DB, error) {
+	// TODO: Implement Turso connection
+	return nil, fmt.Errorf("turso database not implemented yet")
 }
 
 // RunMigrations applies database migrations

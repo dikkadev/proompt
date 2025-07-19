@@ -1,43 +1,60 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
 
+	"github.com/dikka/proompt/server/internal/config"
 	"github.com/dikka/proompt/server/internal/db"
 )
 
 func main() {
-	// Get user home directory
-	homeDir, err := os.UserHomeDir()
+	// Parse command line flags
+	configPath := flag.String("config", "", "Path to configuration file")
+	flag.Parse()
+
+	// Load configuration
+	cfg, err := config.Load(*configPath)
 	if err != nil {
-		log.Fatal("Failed to get user home directory:", err)
+		log.Fatal("Failed to load configuration:", err)
 	}
 
-	// Create proompt directory if it doesn't exist
-	proomptDir := filepath.Join(homeDir, ".proompt")
-	if err := os.MkdirAll(proomptDir, 0755); err != nil {
-		log.Fatal("Failed to create proompt directory:", err)
+	// Ensure necessary directories exist
+	if err := cfg.EnsureDirectories(); err != nil {
+		log.Fatal("Failed to create directories:", err)
 	}
 
-	// Database path
-	dbPath := filepath.Join(proomptDir, "database.db")
+	// Connect to database based on configuration
+	var database *db.DB
+	switch cfg.DatabaseType() {
+	case "local":
+		database, err = db.NewLocal(cfg.Database.Local.Path)
+		if err != nil {
+			log.Fatal("Failed to connect to local database:", err)
+		}
 
-	// Connect to database
-	database, err := db.New(dbPath)
-	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		// Run migrations for local database
+		if err := database.RunMigrations(cfg.Database.Local.Migrations); err != nil {
+			log.Fatal("Failed to run migrations:", err)
+		}
+
+	case "turso":
+		database, err = db.NewTurso(cfg.Database.Turso.URL, cfg.Database.Turso.Token)
+		if err != nil {
+			log.Fatal("Failed to connect to Turso database:", err)
+		}
+
+	default:
+		log.Fatal("Unknown database type:", cfg.DatabaseType())
 	}
 	defer database.Close()
 
-	// Run migrations
-	migrationsPath := "internal/db/migrations"
-	if err := database.RunMigrations(migrationsPath); err != nil {
-		log.Fatal("Failed to run migrations:", err)
-	}
-
 	fmt.Println("Proompt server initialized successfully")
-	fmt.Printf("Database: %s\n", dbPath)
+	fmt.Printf("Database type: %s\n", cfg.DatabaseType())
+	if cfg.Database.Local != nil {
+		fmt.Printf("Database path: %s\n", cfg.Database.Local.Path)
+	}
+	fmt.Printf("Repos: %s\n", cfg.Storage.ReposDir)
+	fmt.Printf("Server: %s:%d\n", cfg.Server.Host, cfg.Server.Port)
 }

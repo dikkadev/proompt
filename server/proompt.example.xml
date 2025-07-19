@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proompt>
+    <!-- Database Configuration: Choose exactly ONE -->
+    
+    <!-- Option 1: Local SQLite Database -->
+    <database>
+        <local>
+            <path>./data/proompt.db</path>
+            <migrations>./internal/db/migrations</migrations>
+        </local>
+    </database>
+    
+    <!-- Option 2: Turso Database (comment out local above, uncomment this) -->
+    <!--
+    <database>
+        <turso>
+            <url>libsql://your-database-name.turso.io</url>
+            <token>your-auth-token-here</token>
+        </turso>
+    </database>
+    -->
+    
+    <!-- Storage Configuration -->
+    <storage>
+        <repos_dir>./data/repos</repos_dir>
+    </storage>
+    
+    <!-- Server Configuration -->
+    <server>
+        <host>localhost</host>
+        <port>8080</port>
+    </server>
+</proompt>
