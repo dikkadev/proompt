@@ -1,3 +1,5 @@
 server/build
 server/data/proompt.db
 AGENTS.md
+server/data
+server/proompt

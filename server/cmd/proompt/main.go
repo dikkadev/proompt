@@ -1,13 +1,21 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log/slog"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
+	"github.com/dikkadev/proompt/server/internal/api"
 	"github.com/dikkadev/proompt/server/internal/config"
 	"github.com/dikkadev/proompt/server/internal/db"
+	"github.com/dikkadev/proompt/server/internal/git"
 	"github.com/dikkadev/proompt/server/internal/logging"
+	"github.com/dikkadev/proompt/server/internal/repository"
 )
 
 func main() {
@@ -60,6 +68,43 @@ func main() {
 	}
 	defer database.Close()
 
+	// Initialize git service
+	gitService, err := git.NewGitService(cfg)
+	if err != nil {
+		slog.Error("Failed to initialize git service", "error", err)
+		os.Exit(1)
+	}
+
+	// Initialize repository
+	repo := repository.New(database, gitService)
+	defer repo.Close()
+
+	// Create API server
+	logger := slog.Default()
+	server := api.New(cfg, repo, logger)
+
+	// Set up graceful shutdown
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Handle shutdown signals
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigChan
+		slog.Info("Received shutdown signal")
+
+		// Give the server 30 seconds to shut down gracefully
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer shutdownCancel()
+
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			slog.Error("Server shutdown error", "error", err)
+		}
+		cancel()
+	}()
+
 	slog.Info("Proompt server initialized successfully",
 		"database_type", cfg.DatabaseType(),
 		"repos_dir", cfg.Storage.ReposDir,
@@ -67,7 +112,13 @@ func main() {
 		"server_port", cfg.Server.Port,
 	)
 
-	if cfg.Database.Local != nil {
-		slog.Info("Local database configuration", "path", cfg.Database.Local.Path)
+	// Start the server
+	if err := server.Start(); err != nil && err != http.ErrServerClosed {
+		slog.Error("Server failed to start", "error", err)
+		os.Exit(1)
 	}
+
+	// Wait for shutdown
+	<-ctx.Done()
+	slog.Info("Server shutdown complete")
 }
