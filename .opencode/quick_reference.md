@@ -1,74 +1,106 @@
-# QUICK REFERENCE - PROOMPT PROJECT
+# PROOMPT - QUICK REFERENCE
 
-## 🏗️ PROJECT STATUS: FOUNDATION COMPLETE ✅
-**Repository layer + Git integration working and tested**
-**Next Phase: API layer implementation**
+## 🚀 IMMEDIATE COMMANDS
 
-## CORE ENTITIES
-
-### Prompt
-- id (UUID), title, content, type, use_case
-- model_compatibility_tags (JSON array)
-- temperature_suggestion, other_parameters (JSON)
-- git_ref (commit hash or branch)
-
-### Snippet  
-- id (UUID), title, content, description
-- Global scope, can access prompt variables
-- Cannot contain other snippets (1 layer max)
-
-### Note
-- id (UUID), prompt_id, title, body
-- Multiple notes per prompt allowed
-
-### Tags
-- prompt_tags: many-to-many with prompts
-- snippet_tags: many-to-many with snippets
-
-## VARIABLE SYSTEM
-- Syntax: `{{variable_name}}` or `{{var:default}}`
-- String-only, no types
-- Prompt variables override snippet variables
-- Warnings for missing vars (not errors)
-- Always computed on-demand, never stored resolved
-
-## GIT INTEGRATION ✅ IMPLEMENTED
-- **Single repo** with orphan branches: `prompts/{uuid}`, `snippets/{uuid}`, `notes/{uuid}`
-- content.json stores entity data on each branch
-- **Atomic DB + git operations** with transaction rollback
-- Auto-managed, no git exposure to user
-- **Location**: ~/.proompt/git-repo/ (single repo, multiple branches)
-
-## KEY CONSTRAINTS
-- No prompt execution
-- No nested snippets
-- Global snippets (not per-project)
-- Use case is first-class field (not just tag)
-
-## SEARCH FEATURES
-- FTS5 on prompts, snippets, notes
-- Tag-based filtering
-- Use case filtering
-- Future: semantic search for discovery
-
-## FILE LOCATIONS ✅ IMPLEMENTED
-- Database: ~/.proompt/database.db
-- Git repo: ~/.proompt/git-repo/ (single repo)
-- Branches: prompts/{uuid}, snippets/{uuid}, notes/{uuid}
-- Each branch contains: content.json
-
-## 🔧 BUILD & TEST
+### Start the Server
 ```bash
-cd server/
-make build                           # Build binary
-go test ./internal/repository -v     # Test repository layer (✅ passing)
+cd server
+make run
+# OR with Docker
+make docker-run
 ```
 
-## PROMPT TYPES
-- system, user, image, video (all same level)
+### Run Tests
+```bash
+make test                    # Unit tests
+make test-integration        # Docker integration tests
+```
 
-## ORGANIZATION
-- Primary: use_case field
-- Secondary: arbitrary tags
-- Tertiary: model compatibility tags
-- Bidirectional prompt links (followup relationships)
+### Build
+```bash
+make build                   # Local binary
+make docker-build           # Docker image
+```
+
+## 📡 API ENDPOINTS
+
+**Base URL**: `http://localhost:8080`
+
+### Prompts
+- `GET /api/prompts` - List (supports ?type=, ?use_case=, ?limit=, ?offset=)
+- `POST /api/prompts` - Create
+- `GET /api/prompts/{id}` - Get by ID
+- `PUT /api/prompts/{id}` - Update
+- `DELETE /api/prompts/{id}` - Delete
+
+### Snippets  
+- `GET /api/snippets` - List
+- `POST /api/snippets` - Create
+- `GET /api/snippets/{id}` - Get by ID
+- `PUT /api/snippets/{id}` - Update
+- `DELETE /api/snippets/{id}` - Delete
+
+### Notes
+- `GET /api/prompts/{id}/notes` - List notes for prompt
+- `POST /api/prompts/{id}/notes` - Create note
+- `GET /api/notes/{id}` - Get note
+- `PUT /api/notes/{id}` - Update note
+- `DELETE /api/notes/{id}` - Delete note
+
+## 📝 REQUEST EXAMPLES
+
+### Create Prompt
+```json
+POST /api/prompts
+{
+  "title": "Code Review Assistant",
+  "content": "Review this code for {{language}} and suggest improvements:\n\n{{code}}",
+  "type": "system",
+  "use_case": "code-review",
+  "model_compatibility_tags": ["gpt-4", "claude-3"],
+  "temperature_suggestion": 0.3
+}
+```
+
+### Create Snippet
+```json
+POST /api/snippets
+{
+  "title": "Error Handling",
+  "content": "Handle errors gracefully: {{error_context}}",
+  "description": "Standard error handling pattern"
+}
+```
+
+## 🔧 CONFIGURATION
+
+Config file: `server/proompt.xml`
+```xml
+<config>
+  <server host="localhost" port="8080"/>
+  <database type="local" path="./data/proompt.db" migrations="./internal/db/migrations"/>
+  <storage repos_dir="./data/repos"/>
+</config>
+```
+
+## 🐳 DOCKER
+
+### Development
+```bash
+docker compose -f server/compose.yaml up
+```
+
+### Testing
+```bash
+docker compose -f tests/docker/compose.test.yaml up --build
+```
+
+## 📁 KEY FILES
+
+- `server/cmd/proompt/main.go` - Entry point
+- `server/internal/api/server.go` - HTTP server setup
+- `server/internal/api/handlers/` - API endpoints
+- `server/internal/repository/` - Data layer
+- `server/internal/models/` - Domain models
+- `server/Dockerfile` - Container build
+- `server/compose.yaml` - Orchestration
