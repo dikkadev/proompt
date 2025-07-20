@@ -1,5 +1,9 @@
 # QUICK REFERENCE - PROOMPT PROJECT
 
+## 🏗️ PROJECT STATUS: FOUNDATION COMPLETE ✅
+**Repository layer + Git integration working and tested**
+**Next Phase: API layer implementation**
+
 ## CORE ENTITIES
 
 ### Prompt
@@ -28,11 +32,12 @@
 - Warnings for missing vars (not errors)
 - Always computed on-demand, never stored resolved
 
-## GIT INTEGRATION
-- One repo per prompt in ~/.proompt/repos/prompt-{uuid}/
-- content.json stores prompt data
-- Database + git operations must be atomic
+## GIT INTEGRATION ✅ IMPLEMENTED
+- **Single repo** with orphan branches: `prompts/{uuid}`, `snippets/{uuid}`, `notes/{uuid}`
+- content.json stores entity data on each branch
+- **Atomic DB + git operations** with transaction rollback
 - Auto-managed, no git exposure to user
+- **Location**: ~/.proompt/git-repo/ (single repo, multiple branches)
 
 ## KEY CONSTRAINTS
 - No prompt execution
@@ -46,10 +51,18 @@
 - Use case filtering
 - Future: semantic search for discovery
 
-## FILE LOCATIONS
+## FILE LOCATIONS ✅ IMPLEMENTED
 - Database: ~/.proompt/database.db
-- Git repos: ~/.proompt/repos/prompt-{uuid}/
-- Each repo contains: .git/ and content.json
+- Git repo: ~/.proompt/git-repo/ (single repo)
+- Branches: prompts/{uuid}, snippets/{uuid}, notes/{uuid}
+- Each branch contains: content.json
+
+## 🔧 BUILD & TEST
+```bash
+cd server/
+make build                           # Build binary
+go test ./internal/repository -v     # Test repository layer (✅ passing)
+```
 
 ## PROMPT TYPES
 - system, user, image, video (all same level)
