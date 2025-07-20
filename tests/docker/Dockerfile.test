@@ -1,0 +1,32 @@
+# =============================================================================
+# Test Runner Dockerfile
+# =============================================================================
+# This Dockerfile creates a lightweight test runner container with all the
+# tools needed for integration testing (curl, jq, sqlite3, etc.)
+# =============================================================================
+
+FROM alpine:3.21
+
+# Install testing tools
+RUN apk add --no-cache \
+    curl \
+    jq \
+    sqlite \
+    bash \
+    wget \
+    ca-certificates \
+    && addgroup -g 1001 -S tester \
+    && adduser -u 1001 -S tester -G tester
+
+# Create directories
+RUN mkdir -p /tests /results \
+    && chown -R tester:tester /tests /results
+
+# Switch to non-root user
+USER tester
+
+# Set working directory
+WORKDIR /tests
+
+# Default command
+CMD ["bash"]

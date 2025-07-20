@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proompt>
+    <!-- Database Configuration for Docker -->
+    <database>
+        <local>
+            <path>/app/data/proompt.db</path>
+            <migrations>/app/migrations</migrations>
+        </local>
+    </database>
+    
+    <!-- Storage Configuration -->
+    <storage>
+        <repos_dir>/app/data/repos</repos_dir>
+    </storage>
+    
+    <!-- Server Configuration -->
+    <server>
+        <host>0.0.0.0</host>
+        <port>8080</port>
+    </server>
+</proompt>
