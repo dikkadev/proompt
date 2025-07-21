@@ -68,6 +68,38 @@ func (m *mockPromptRepository) Search(ctx context.Context, query string) ([]*dom
 	return nil, nil // Not implemented for tests
 }
 
+func (m *mockPromptRepository) CreateLink(ctx context.Context, link *domainModels.PromptLink) error {
+	return nil // Not implemented for tests
+}
+
+func (m *mockPromptRepository) DeleteLink(ctx context.Context, fromPromptID, toPromptID string) error {
+	return nil // Not implemented for tests
+}
+
+func (m *mockPromptRepository) GetLinksFrom(ctx context.Context, promptID string) ([]*domainModels.PromptLink, error) {
+	return nil, nil // Not implemented for tests
+}
+
+func (m *mockPromptRepository) GetLinksTo(ctx context.Context, promptID string) ([]*domainModels.PromptLink, error) {
+	return nil, nil // Not implemented for tests
+}
+
+func (m *mockPromptRepository) AddTag(ctx context.Context, promptID, tagName string) error {
+	return nil // Not implemented for tests
+}
+
+func (m *mockPromptRepository) RemoveTag(ctx context.Context, promptID, tagName string) error {
+	return nil // Not implemented for tests
+}
+
+func (m *mockPromptRepository) GetTags(ctx context.Context, promptID string) ([]string, error) {
+	return nil, nil // Not implemented for tests
+}
+
+func (m *mockPromptRepository) ListAllTags(ctx context.Context) ([]string, error) {
+	return nil, nil // Not implemented for tests
+}
+
 // mockRepository implements Repository for testing
 type mockRepository struct {
 	prompts *mockPromptRepository

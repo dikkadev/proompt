@@ -186,3 +186,195 @@ func (h *PromptHandlers) ListPrompts(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(listResponse)
 }
+
+// CreatePromptLink handles POST /api/prompts/{id}/links
+func (h *PromptHandlers) CreatePromptLink(w http.ResponseWriter, r *http.Request) {
+	fromPromptID := r.PathValue("id")
+	if fromPromptID == "" {
+		models.WriteBadRequest(w, "Prompt ID is required")
+		return
+	}
+
+	var req models.CreatePromptLinkRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		models.WriteBadRequest(w, "Invalid JSON body")
+		return
+	}
+
+	// Basic validation
+	if req.ToPromptID == "" {
+		models.WriteBadRequest(w, "To prompt ID is required")
+		return
+	}
+
+	if fromPromptID == req.ToPromptID {
+		models.WriteBadRequest(w, "Cannot link prompt to itself")
+		return
+	}
+
+	// Check if both prompts exist
+	_, err := h.repo.Prompts().GetByID(r.Context(), fromPromptID)
+	if err != nil {
+		models.WriteNotFound(w, "From prompt")
+		return
+	}
+
+	_, err = h.repo.Prompts().GetByID(r.Context(), req.ToPromptID)
+	if err != nil {
+		models.WriteNotFound(w, "To prompt")
+		return
+	}
+
+	// Create the link
+	link := &domainModels.PromptLink{
+		FromPromptID: fromPromptID,
+		ToPromptID:   req.ToPromptID,
+		LinkType:     req.LinkType,
+	}
+
+	if err := h.repo.Prompts().CreateLink(r.Context(), link); err != nil {
+		models.WriteInternalError(w, "Failed to create prompt link")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(models.FromPromptLink(link))
+}
+
+// AddPromptTag handles POST /api/prompts/{id}/tags
+func (h *PromptHandlers) AddPromptTag(w http.ResponseWriter, r *http.Request) {
+	promptID := r.PathValue("id")
+	if promptID == "" {
+		models.WriteBadRequest(w, "Prompt ID is required")
+		return
+	}
+
+	var req models.AddTagRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		models.WriteBadRequest(w, "Invalid JSON body")
+		return
+	}
+
+	// Basic validation
+	if req.TagName == "" {
+		models.WriteBadRequest(w, "Tag name is required")
+		return
+	}
+
+	// Check if prompt exists
+	_, err := h.repo.Prompts().GetByID(r.Context(), promptID)
+	if err != nil {
+		models.WriteNotFound(w, "Prompt")
+		return
+	}
+
+	if err := h.repo.Prompts().AddTag(r.Context(), promptID, req.TagName); err != nil {
+		models.WriteInternalError(w, "Failed to add tag to prompt")
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
+// RemovePromptTag handles DELETE /api/prompts/{id}/tags/{tagName}
+func (h *PromptHandlers) RemovePromptTag(w http.ResponseWriter, r *http.Request) {
+	promptID := r.PathValue("id")
+	tagName := r.PathValue("tagName")
+
+	if promptID == "" || tagName == "" {
+		models.WriteBadRequest(w, "Both prompt ID and tag name are required")
+		return
+	}
+
+	if err := h.repo.Prompts().RemoveTag(r.Context(), promptID, tagName); err != nil {
+		models.WriteNotFound(w, "Tag")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetPromptTags handles GET /api/prompts/{id}/tags
+func (h *PromptHandlers) GetPromptTags(w http.ResponseWriter, r *http.Request) {
+	promptID := r.PathValue("id")
+	if promptID == "" {
+		models.WriteBadRequest(w, "Prompt ID is required")
+		return
+	}
+
+	tags, err := h.repo.Prompts().GetTags(r.Context(), promptID)
+	if err != nil {
+		models.WriteInternalError(w, "Failed to get prompt tags")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string][]string{"tags": tags})
+}
+
+// ListAllPromptTags handles GET /api/prompts/tags
+func (h *PromptHandlers) ListAllPromptTags(w http.ResponseWriter, r *http.Request) {
+	tags, err := h.repo.Prompts().ListAllTags(r.Context())
+	if err != nil {
+		models.WriteInternalError(w, "Failed to list all prompt tags")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string][]string{"tags": tags})
+}
+
+// DeletePromptLink handles DELETE /api/prompts/{id}/links/{toId}
+func (h *PromptHandlers) DeletePromptLink(w http.ResponseWriter, r *http.Request) {
+	fromPromptID := r.PathValue("id")
+	toPromptID := r.PathValue("toId")
+
+	if fromPromptID == "" || toPromptID == "" {
+		models.WriteBadRequest(w, "Both prompt IDs are required")
+		return
+	}
+
+	if err := h.repo.Prompts().DeleteLink(r.Context(), fromPromptID, toPromptID); err != nil {
+		models.WriteNotFound(w, "Prompt link")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetPromptLinksFrom handles GET /api/prompts/{id}/links
+func (h *PromptHandlers) GetPromptLinksFrom(w http.ResponseWriter, r *http.Request) {
+	promptID := r.PathValue("id")
+	if promptID == "" {
+		models.WriteBadRequest(w, "Prompt ID is required")
+		return
+	}
+
+	links, err := h.repo.Prompts().GetLinksFrom(r.Context(), promptID)
+	if err != nil {
+		models.WriteInternalError(w, "Failed to get prompt links")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(models.FromPromptLinks(links))
+}
+
+// GetPromptLinksTo handles GET /api/prompts/{id}/backlinks
+func (h *PromptHandlers) GetPromptLinksTo(w http.ResponseWriter, r *http.Request) {
+	promptID := r.PathValue("id")
+	if promptID == "" {
+		models.WriteBadRequest(w, "Prompt ID is required")
+		return
+	}
+
+	links, err := h.repo.Prompts().GetLinksTo(r.Context(), promptID)
+	if err != nil {
+		models.WriteInternalError(w, "Failed to get prompt backlinks")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(models.FromPromptLinks(links))
+}

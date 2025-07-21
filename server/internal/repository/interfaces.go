@@ -28,6 +28,18 @@ type PromptRepository interface {
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, filters PromptFilters) ([]*models.Prompt, error)
 	Search(ctx context.Context, query string) ([]*models.Prompt, error)
+
+	// Link management
+	CreateLink(ctx context.Context, link *models.PromptLink) error
+	DeleteLink(ctx context.Context, fromPromptID, toPromptID string) error
+	GetLinksFrom(ctx context.Context, promptID string) ([]*models.PromptLink, error)
+	GetLinksTo(ctx context.Context, promptID string) ([]*models.PromptLink, error)
+
+	// Tag management
+	AddTag(ctx context.Context, promptID, tagName string) error
+	RemoveTag(ctx context.Context, promptID, tagName string) error
+	GetTags(ctx context.Context, promptID string) ([]string, error)
+	ListAllTags(ctx context.Context) ([]string, error)
 }
 
 // SnippetRepository handles CRUD operations for snippets
@@ -38,6 +50,12 @@ type SnippetRepository interface {
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, filters SnippetFilters) ([]*models.Snippet, error)
 	Search(ctx context.Context, query string) ([]*models.Snippet, error)
+
+	// Tag management
+	AddTag(ctx context.Context, snippetID, tagName string) error
+	RemoveTag(ctx context.Context, snippetID, tagName string) error
+	GetTags(ctx context.Context, snippetID string) ([]string, error)
+	ListAllTags(ctx context.Context) ([]string, error)
 }
 
 // NoteRepository handles CRUD operations for notes

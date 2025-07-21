@@ -249,3 +249,76 @@ func (r *snippetRepository) Search(ctx context.Context, query string) ([]*models
 	r.logger.Debug("Snippets search completed", "query", query, "count", len(snippets))
 	return snippets, nil
 }
+
+// AddTag adds a tag to a snippet
+func (r *snippetRepository) AddTag(ctx context.Context, snippetID, tagName string) error {
+	r.logger.Debug("Adding tag to snippet", "id", snippetID, "tag", tagName)
+
+	query := `INSERT OR IGNORE INTO snippet_tags (snippet_id, tag_name) VALUES (?, ?)`
+	_, err := r.db.ExecContext(ctx, query, snippetID, tagName)
+	if err != nil {
+		r.logger.Error("Failed to add tag to snippet", "error", err, "id", snippetID, "tag", tagName)
+		return fmt.Errorf("failed to add tag to snippet: %w", err)
+	}
+
+	r.logger.Info("Tag added to snippet successfully", "id", snippetID, "tag", tagName)
+	return nil
+}
+
+// RemoveTag removes a tag from a snippet
+func (r *snippetRepository) RemoveTag(ctx context.Context, snippetID, tagName string) error {
+	r.logger.Debug("Removing tag from snippet", "id", snippetID, "tag", tagName)
+
+	query := `DELETE FROM snippet_tags WHERE snippet_id = ? AND tag_name = ?`
+	result, err := r.db.ExecContext(ctx, query, snippetID, tagName)
+	if err != nil {
+		r.logger.Error("Failed to remove tag from snippet", "error", err, "id", snippetID, "tag", tagName)
+		return fmt.Errorf("failed to remove tag from snippet: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		r.logger.Error("Failed to get rows affected", "error", err, "id", snippetID, "tag", tagName)
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		r.logger.Debug("Tag not found for removal", "id", snippetID, "tag", tagName)
+		return fmt.Errorf("tag not found on snippet")
+	}
+
+	r.logger.Info("Tag removed from snippet successfully", "id", snippetID, "tag", tagName)
+	return nil
+}
+
+// GetTags retrieves all tags for a snippet
+func (r *snippetRepository) GetTags(ctx context.Context, snippetID string) ([]string, error) {
+	r.logger.Debug("Getting tags for snippet", "id", snippetID)
+
+	query := `SELECT tag_name FROM snippet_tags WHERE snippet_id = ? ORDER BY tag_name`
+	var tags []string
+	err := r.db.SelectContext(ctx, &tags, query, snippetID)
+	if err != nil {
+		r.logger.Error("Failed to get tags for snippet", "error", err, "id", snippetID)
+		return nil, fmt.Errorf("failed to get tags for snippet: %w", err)
+	}
+
+	r.logger.Debug("Tags for snippet retrieved successfully", "id", snippetID, "count", len(tags))
+	return tags, nil
+}
+
+// ListAllTags retrieves all unique tags used by snippets
+func (r *snippetRepository) ListAllTags(ctx context.Context) ([]string, error) {
+	r.logger.Debug("Listing all snippet tags")
+
+	query := `SELECT DISTINCT tag_name FROM snippet_tags ORDER BY tag_name`
+	var tags []string
+	err := r.db.SelectContext(ctx, &tags, query)
+	if err != nil {
+		r.logger.Error("Failed to list all snippet tags", "error", err)
+		return nil, fmt.Errorf("failed to list all snippet tags: %w", err)
+	}
+
+	r.logger.Debug("All snippet tags listed successfully", "count", len(tags))
+	return tags, nil
+}

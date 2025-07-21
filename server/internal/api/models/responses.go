@@ -136,3 +136,45 @@ func FromNotes(notes []*models.Note) []*NoteResponse {
 	}
 	return responses
 }
+
+// TemplateVariable represents a variable in template responses
+type TemplateVariable struct {
+	Name         string `json:"name"`
+	DefaultValue string `json:"default_value,omitempty"`
+	HasDefault   bool   `json:"has_default"`
+	Status       string `json:"status"` // "provided", "default", "missing"
+}
+
+// TemplatePreviewResponse represents the response for template preview
+type TemplatePreviewResponse struct {
+	ResolvedContent string             `json:"resolved_content"`
+	Variables       []TemplateVariable `json:"variables"`
+	Warnings        []string           `json:"warnings"`
+}
+
+// PromptLinkResponse represents a prompt link in API responses
+type PromptLinkResponse struct {
+	FromPromptID string    `json:"from_prompt_id"`
+	ToPromptID   string    `json:"to_prompt_id"`
+	LinkType     string    `json:"link_type"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+// FromPromptLink converts domain model to API response
+func FromPromptLink(link *models.PromptLink) *PromptLinkResponse {
+	return &PromptLinkResponse{
+		FromPromptID: link.FromPromptID,
+		ToPromptID:   link.ToPromptID,
+		LinkType:     link.LinkType,
+		CreatedAt:    link.CreatedAt,
+	}
+}
+
+// FromPromptLinks converts slice of domain models to API responses
+func FromPromptLinks(links []*models.PromptLink) []*PromptLinkResponse {
+	responses := make([]*PromptLinkResponse, len(links))
+	for i, link := range links {
+		responses[i] = FromPromptLink(link)
+	}
+	return responses
+}

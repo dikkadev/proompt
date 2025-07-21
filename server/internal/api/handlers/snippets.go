@@ -166,3 +166,86 @@ func (h *SnippetHandlers) ListSnippets(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(listResponse)
 }
+
+// AddSnippetTag handles POST /api/snippets/{id}/tags
+func (h *SnippetHandlers) AddSnippetTag(w http.ResponseWriter, r *http.Request) {
+	snippetID := r.PathValue("id")
+	if snippetID == "" {
+		models.WriteBadRequest(w, "Snippet ID is required")
+		return
+	}
+
+	var req models.AddTagRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		models.WriteBadRequest(w, "Invalid JSON body")
+		return
+	}
+
+	// Basic validation
+	if req.TagName == "" {
+		models.WriteBadRequest(w, "Tag name is required")
+		return
+	}
+
+	// Check if snippet exists
+	_, err := h.repo.Snippets().GetByID(r.Context(), snippetID)
+	if err != nil {
+		models.WriteNotFound(w, "Snippet")
+		return
+	}
+
+	if err := h.repo.Snippets().AddTag(r.Context(), snippetID, req.TagName); err != nil {
+		models.WriteInternalError(w, "Failed to add tag to snippet")
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
+// RemoveSnippetTag handles DELETE /api/snippets/{id}/tags/{tagName}
+func (h *SnippetHandlers) RemoveSnippetTag(w http.ResponseWriter, r *http.Request) {
+	snippetID := r.PathValue("id")
+	tagName := r.PathValue("tagName")
+
+	if snippetID == "" || tagName == "" {
+		models.WriteBadRequest(w, "Both snippet ID and tag name are required")
+		return
+	}
+
+	if err := h.repo.Snippets().RemoveTag(r.Context(), snippetID, tagName); err != nil {
+		models.WriteNotFound(w, "Tag")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetSnippetTags handles GET /api/snippets/{id}/tags
+func (h *SnippetHandlers) GetSnippetTags(w http.ResponseWriter, r *http.Request) {
+	snippetID := r.PathValue("id")
+	if snippetID == "" {
+		models.WriteBadRequest(w, "Snippet ID is required")
+		return
+	}
+
+	tags, err := h.repo.Snippets().GetTags(r.Context(), snippetID)
+	if err != nil {
+		models.WriteInternalError(w, "Failed to get snippet tags")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string][]string{"tags": tags})
+}
+
+// ListAllSnippetTags handles GET /api/snippets/tags
+func (h *SnippetHandlers) ListAllSnippetTags(w http.ResponseWriter, r *http.Request) {
+	tags, err := h.repo.Snippets().ListAllTags(r.Context())
+	if err != nil {
+		models.WriteInternalError(w, "Failed to list all snippet tags")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string][]string{"tags": tags})
+}

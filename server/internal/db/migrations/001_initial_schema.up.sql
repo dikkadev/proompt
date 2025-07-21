@@ -68,15 +68,3 @@ CREATE INDEX idx_prompt_tags_prompt ON prompt_tags(prompt_id);
 CREATE INDEX idx_snippet_tags_tag ON snippet_tags(tag_name);
 CREATE INDEX idx_snippet_tags_snippet ON snippet_tags(snippet_id);
 
--- Full-text search virtual tables
-CREATE VIRTUAL TABLE prompts_fts USING fts5(
-    title, content, use_case, content=prompts, content_rowid=rowid
-);
-
-CREATE VIRTUAL TABLE snippets_fts USING fts5(
-    title, content, description, content=snippets, content_rowid=rowid
-);
-
-CREATE VIRTUAL TABLE notes_fts USING fts5(
-    title, body, content=notes, content_rowid=rowid
-);

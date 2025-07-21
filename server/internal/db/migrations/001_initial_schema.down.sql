@@ -1,8 +1,3 @@
--- Drop FTS tables first
-DROP TABLE IF EXISTS notes_fts;
-DROP TABLE IF EXISTS snippets_fts;
-DROP TABLE IF EXISTS prompts_fts;
-
 -- Drop indexes
 DROP INDEX IF EXISTS idx_snippet_tags_snippet;
 DROP INDEX IF EXISTS idx_snippet_tags_tag;

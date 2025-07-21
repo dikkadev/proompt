@@ -250,16 +250,17 @@ func (r *promptRepository) List(ctx context.Context, filters PromptFilters) ([]*
 func (r *promptRepository) Search(ctx context.Context, query string) ([]*models.Prompt, error) {
 	r.logger.Debug("Searching prompts", "query", query)
 
+	// For now, use simple LIKE search since we removed FTS
 	searchQuery := `
-		SELECT p.id, p.title, p.content, p.type, p.use_case, p.model_compatibility_tags,
-		       p.temperature_suggestion, p.other_parameters, p.created_at, p.updated_at, p.git_ref
-		FROM prompts p
-		JOIN prompts_fts fts ON p.id = fts.rowid
-		WHERE prompts_fts MATCH ?
-		ORDER BY rank`
+		SELECT id, title, content, type, use_case, model_compatibility_tags,
+		       temperature_suggestion, other_parameters, created_at, updated_at, git_ref
+		FROM prompts
+		WHERE title LIKE ? OR content LIKE ?
+		ORDER BY updated_at DESC`
 
+	searchTerm := "%" + query + "%"
 	var prompts []*models.Prompt
-	err := r.db.SelectContext(ctx, &prompts, searchQuery, query)
+	err := r.db.SelectContext(ctx, &prompts, searchQuery, searchTerm, searchTerm)
 	if err != nil {
 		r.logger.Error("Failed to search prompts", "error", err, "query", query)
 		return nil, fmt.Errorf("failed to search prompts: %w", err)
@@ -267,4 +268,170 @@ func (r *promptRepository) Search(ctx context.Context, query string) ([]*models.
 
 	r.logger.Debug("Prompts search completed", "query", query, "count", len(prompts))
 	return prompts, nil
+}
+
+// CreateLink creates a bidirectional link between two prompts
+func (r *promptRepository) CreateLink(ctx context.Context, link *models.PromptLink) error {
+	r.logger.Debug("Creating prompt link", "from", link.FromPromptID, "to", link.ToPromptID, "type", link.LinkType)
+
+	// Set default link type if not provided
+	if link.LinkType == "" {
+		link.LinkType = "followup"
+	}
+
+	link.CreatedAt = time.Now()
+
+	query := `
+		INSERT INTO prompt_links (from_prompt_id, to_prompt_id, link_type, created_at)
+		VALUES (?, ?, ?, ?)`
+
+	_, err := r.db.ExecContext(ctx, query, link.FromPromptID, link.ToPromptID, link.LinkType, link.CreatedAt)
+	if err != nil {
+		r.logger.Error("Failed to create prompt link", "error", err, "from", link.FromPromptID, "to", link.ToPromptID)
+		return fmt.Errorf("failed to create prompt link: %w", err)
+	}
+
+	r.logger.Info("Prompt link created successfully", "from", link.FromPromptID, "to", link.ToPromptID, "type", link.LinkType)
+	return nil
+}
+
+// DeleteLink deletes a link between two prompts
+func (r *promptRepository) DeleteLink(ctx context.Context, fromPromptID, toPromptID string) error {
+	r.logger.Debug("Deleting prompt link", "from", fromPromptID, "to", toPromptID)
+
+	query := `DELETE FROM prompt_links WHERE from_prompt_id = ? AND to_prompt_id = ?`
+	result, err := r.db.ExecContext(ctx, query, fromPromptID, toPromptID)
+	if err != nil {
+		r.logger.Error("Failed to delete prompt link", "error", err, "from", fromPromptID, "to", toPromptID)
+		return fmt.Errorf("failed to delete prompt link: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		r.logger.Error("Failed to get rows affected", "error", err, "from", fromPromptID, "to", toPromptID)
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		r.logger.Debug("Prompt link not found for deletion", "from", fromPromptID, "to", toPromptID)
+		return fmt.Errorf("prompt link not found")
+	}
+
+	r.logger.Info("Prompt link deleted successfully", "from", fromPromptID, "to", toPromptID)
+	return nil
+}
+
+// GetLinksFrom retrieves all links from a specific prompt
+func (r *promptRepository) GetLinksFrom(ctx context.Context, promptID string) ([]*models.PromptLink, error) {
+	r.logger.Debug("Getting links from prompt", "id", promptID)
+
+	query := `
+		SELECT from_prompt_id, to_prompt_id, link_type, created_at
+		FROM prompt_links
+		WHERE from_prompt_id = ?
+		ORDER BY created_at DESC`
+
+	var links []*models.PromptLink
+	err := r.db.SelectContext(ctx, &links, query, promptID)
+	if err != nil {
+		r.logger.Error("Failed to get links from prompt", "error", err, "id", promptID)
+		return nil, fmt.Errorf("failed to get links from prompt: %w", err)
+	}
+
+	r.logger.Debug("Links from prompt retrieved successfully", "id", promptID, "count", len(links))
+	return links, nil
+}
+
+// GetLinksTo retrieves all links to a specific prompt
+func (r *promptRepository) GetLinksTo(ctx context.Context, promptID string) ([]*models.PromptLink, error) {
+	r.logger.Debug("Getting links to prompt", "id", promptID)
+
+	query := `
+		SELECT from_prompt_id, to_prompt_id, link_type, created_at
+		FROM prompt_links
+		WHERE to_prompt_id = ?
+		ORDER BY created_at DESC`
+
+	var links []*models.PromptLink
+	err := r.db.SelectContext(ctx, &links, query, promptID)
+	if err != nil {
+		r.logger.Error("Failed to get links to prompt", "error", err, "id", promptID)
+		return nil, fmt.Errorf("failed to get links to prompt: %w", err)
+	}
+
+	r.logger.Debug("Links to prompt retrieved successfully", "id", promptID, "count", len(links))
+	return links, nil
+}
+
+// AddTag adds a tag to a prompt
+func (r *promptRepository) AddTag(ctx context.Context, promptID, tagName string) error {
+	r.logger.Debug("Adding tag to prompt", "id", promptID, "tag", tagName)
+
+	query := `INSERT OR IGNORE INTO prompt_tags (prompt_id, tag_name) VALUES (?, ?)`
+	_, err := r.db.ExecContext(ctx, query, promptID, tagName)
+	if err != nil {
+		r.logger.Error("Failed to add tag to prompt", "error", err, "id", promptID, "tag", tagName)
+		return fmt.Errorf("failed to add tag to prompt: %w", err)
+	}
+
+	r.logger.Info("Tag added to prompt successfully", "id", promptID, "tag", tagName)
+	return nil
+}
+
+// RemoveTag removes a tag from a prompt
+func (r *promptRepository) RemoveTag(ctx context.Context, promptID, tagName string) error {
+	r.logger.Debug("Removing tag from prompt", "id", promptID, "tag", tagName)
+
+	query := `DELETE FROM prompt_tags WHERE prompt_id = ? AND tag_name = ?`
+	result, err := r.db.ExecContext(ctx, query, promptID, tagName)
+	if err != nil {
+		r.logger.Error("Failed to remove tag from prompt", "error", err, "id", promptID, "tag", tagName)
+		return fmt.Errorf("failed to remove tag from prompt: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		r.logger.Error("Failed to get rows affected", "error", err, "id", promptID, "tag", tagName)
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		r.logger.Debug("Tag not found for removal", "id", promptID, "tag", tagName)
+		return fmt.Errorf("tag not found on prompt")
+	}
+
+	r.logger.Info("Tag removed from prompt successfully", "id", promptID, "tag", tagName)
+	return nil
+}
+
+// GetTags retrieves all tags for a prompt
+func (r *promptRepository) GetTags(ctx context.Context, promptID string) ([]string, error) {
+	r.logger.Debug("Getting tags for prompt", "id", promptID)
+
+	query := `SELECT tag_name FROM prompt_tags WHERE prompt_id = ? ORDER BY tag_name`
+	var tags []string
+	err := r.db.SelectContext(ctx, &tags, query, promptID)
+	if err != nil {
+		r.logger.Error("Failed to get tags for prompt", "error", err, "id", promptID)
+		return nil, fmt.Errorf("failed to get tags for prompt: %w", err)
+	}
+
+	r.logger.Debug("Tags for prompt retrieved successfully", "id", promptID, "count", len(tags))
+	return tags, nil
+}
+
+// ListAllTags retrieves all unique tags used by prompts
+func (r *promptRepository) ListAllTags(ctx context.Context) ([]string, error) {
+	r.logger.Debug("Listing all prompt tags")
+
+	query := `SELECT DISTINCT tag_name FROM prompt_tags ORDER BY tag_name`
+	var tags []string
+	err := r.db.SelectContext(ctx, &tags, query)
+	if err != nil {
+		r.logger.Error("Failed to list all prompt tags", "error", err)
+		return nil, fmt.Errorf("failed to list all prompt tags: %w", err)
+	}
+
+	r.logger.Debug("All prompt tags listed successfully", "count", len(tags))
+	return tags, nil
 }

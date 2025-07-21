@@ -107,3 +107,20 @@ func (r *CreateNoteRequest) ToNote(promptID string) *models.Note {
 		UpdatedAt: time.Now(),
 	}
 }
+
+// TemplatePreviewRequest represents the request body for template preview
+type TemplatePreviewRequest struct {
+	Content   string            `json:"content" validate:"required"`
+	Variables map[string]string `json:"variables,omitempty"`
+}
+
+// CreatePromptLinkRequest represents the request body for creating a prompt link
+type CreatePromptLinkRequest struct {
+	ToPromptID string `json:"to_prompt_id" validate:"required"`
+	LinkType   string `json:"link_type,omitempty"`
+}
+
+// AddTagRequest represents the request body for adding a tag
+type AddTagRequest struct {
+	TagName string `json:"tag_name" validate:"required"`
+}
