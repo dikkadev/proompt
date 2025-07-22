@@ -126,7 +126,7 @@ export function ColorPicker() {
                     aria-label={`Select ${color} color`}
                   >
                     {tempColor.toLowerCase() === color.toLowerCase() && (
-                      <Check className="h-3 w-3 text-white absolute inset-0 m-auto drop-shadow-sm" />
+                      <Check className="h-3 w-3 text-white absolute inset-0 m-auto drop-shadow-xs" />
                     )}
                   </button>
                 ))}

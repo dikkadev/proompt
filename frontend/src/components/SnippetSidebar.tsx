@@ -656,17 +656,17 @@ function SnippetCard({
   
   return (
     <div
-      className="group p-3 rounded-lg border border-border hover:border-primary/50 cursor-pointer transition-all hover:shadow-sm bg-card hover:bg-primary/5"
+      className="group p-3 rounded-lg border border-border hover:border-primary/50 cursor-pointer transition-all hover:shadow-xs bg-card hover:bg-primary/5"
       onClick={() => onInsert(snippet.name)}
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <Icon className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+          <Icon className="h-3 w-3 text-muted-foreground shrink-0" />
           <span className="font-mono text-sm font-medium truncate">
             @{snippet.name}
           </span>
           {snippet.isFavorite && (
-            <Star className="h-3 w-3 text-yellow-500 flex-shrink-0" />
+            <Star className="h-3 w-3 text-yellow-500 shrink-0" />
           )}
         </div>
       </div>
