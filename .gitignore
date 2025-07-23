@@ -3,3 +3,7 @@ server/data/proompt.db
 AGENTS.md
 server/data
 server/proompt
+node_modules/lodash-es
+server/logs
+server/logs/*
+server/log-2025W303202145.log

@@ -2,38 +2,54 @@ package handlers
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/dikkadev/proompt/server/internal/api/models"
+	"github.com/dikkadev/proompt/server/internal/logging"
 	"github.com/dikkadev/proompt/server/internal/repository"
 	"github.com/google/uuid"
 )
 
 // SnippetHandlers contains handlers for snippet operations
 type SnippetHandlers struct {
-	repo repository.Repository
+	repo   repository.Repository
+	logger *slog.Logger
 }
 
 // NewSnippetHandlers creates a new snippet handlers instance
 func NewSnippetHandlers(repo repository.Repository) *SnippetHandlers {
-	return &SnippetHandlers{repo: repo}
+	return &SnippetHandlers{
+		repo:   repo,
+		logger: logging.NewLogger("handlers.snippets"),
+	}
 }
 
 // CreateSnippet handles POST /api/snippets
 func (h *SnippetHandlers) CreateSnippet(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("CreateSnippet handler started")
+
 	var req models.CreateSnippetRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Debug("Failed to decode request body", "error", err)
 		models.WriteBadRequest(w, "Invalid JSON body")
 		return
 	}
 
+	h.logger.Debug("Decoded create snippet request",
+		"title", req.Title,
+		"description", req.Description,
+		"content_length", len(req.Content))
+
 	// Basic validation
 	if req.Title == "" {
+		h.logger.Debug("Validation failed: title is required")
 		models.WriteBadRequest(w, "Title is required")
 		return
 	}
 	if req.Content == "" {
+		h.logger.Debug("Validation failed: content is required")
 		models.WriteBadRequest(w, "Content is required")
 		return
 	}
@@ -42,11 +58,19 @@ func (h *SnippetHandlers) CreateSnippet(w http.ResponseWriter, r *http.Request) 
 	snippet := req.ToSnippet()
 	snippet.ID = uuid.New().String()
 
+	h.logger.Debug("Generated snippet ID and converted to domain model",
+		"snippet_id", snippet.ID,
+		"has_description", snippet.Description != nil)
 	// Create snippet
 	if err := h.repo.Snippets().Create(r.Context(), snippet); err != nil {
+		h.logger.Error("Failed to create snippet in repository",
+			"snippet_id", snippet.ID,
+			"error", err)
 		models.WriteInternalError(w, "Failed to create snippet")
 		return
 	}
+
+	h.logger.Debug("Successfully created snippet", "snippet_id", snippet.ID)
 
 	// Return created snippet
 	response := models.FromSnippet(snippet)

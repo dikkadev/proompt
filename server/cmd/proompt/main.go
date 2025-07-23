@@ -18,20 +18,53 @@ import (
 	"github.com/dikkadev/proompt/server/internal/repository"
 )
 
+// determineEnvironment determines the environment from CLI flag or env var
+func determineEnvironment(cliEnv string) string {
+	if cliEnv != "" {
+		return cliEnv
+	}
+	if envVar := os.Getenv("PROOMPT_ENV"); envVar != "" {
+		return envVar
+	}
+	return "dev" // default
+}
+
 func main() {
-	// Set up prettyslog as the default logger
+	// Set up basic logger for startup (will be reconfigured after config load)
 	logging.SetDefault("proompt")
 
 	// Parse command line flags
 	configPath := flag.String("config", "", "Path to configuration file")
+	environment := flag.String("env", "", "Environment (dev/prod), overrides PROOMPT_ENV")
+	silent := flag.Bool("s", false, "Silent mode - disable stdout logging")
+	logLevel := flag.String("l", "", "Log level (debug/info/warn/error), overrides config")
 	flag.Parse()
 
+	// Determine environment
+	env := determineEnvironment(*environment)
+
 	// Load configuration
-	cfg, err := config.Load(*configPath)
+	cfg, err := config.Load(*configPath, env)
 	if err != nil {
 		slog.Error("Failed to load configuration", "error", err)
 		os.Exit(1)
 	}
+
+	// Apply CLI overrides
+	if *silent {
+		cfg.Logging.Outputs.Stdout.Enabled = false
+	}
+	if *logLevel != "" {
+		cfg.Logging.Level = *logLevel
+	}
+
+	// Set up the configured logger
+	configuredLogger, err := cfg.Logging.CreateLogger("proompt")
+	if err != nil {
+		slog.Error("Failed to create logger", "error", err)
+		os.Exit(1)
+	}
+	slog.SetDefault(configuredLogger)
 
 	// Ensure necessary directories exist
 	if err := cfg.EnsureDirectories(); err != nil {
@@ -80,8 +113,7 @@ func main() {
 	defer repo.Close()
 
 	// Create API server
-	logger := slog.Default()
-	server := api.New(cfg, repo, logger)
+	server := api.New(cfg, repo, slog.Default())
 
 	// Set up graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())

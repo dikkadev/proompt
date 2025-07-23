@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/dikkadev/proompt/server/internal/api/models"
+	"github.com/dikkadev/proompt/server/internal/logging"
 	domainModels "github.com/dikkadev/proompt/server/internal/models"
 	"github.com/dikkadev/proompt/server/internal/repository"
 	"github.com/google/uuid"
@@ -13,29 +15,43 @@ import (
 
 // PromptHandlers contains handlers for prompt operations
 type PromptHandlers struct {
-	repo repository.Repository
+	repo   repository.Repository
+	logger *slog.Logger
 }
 
 // NewPromptHandlers creates a new prompt handlers instance
 func NewPromptHandlers(repo repository.Repository) *PromptHandlers {
-	return &PromptHandlers{repo: repo}
+	return &PromptHandlers{
+		repo:   repo,
+		logger: logging.NewLogger("handlers.prompts"),
+	}
 }
 
 // CreatePrompt handles POST /api/prompts
 func (h *PromptHandlers) CreatePrompt(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("CreatePrompt handler started")
+
 	var req models.CreatePromptRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Debug("Failed to decode request body", "error", err)
 		models.WriteBadRequest(w, "Invalid JSON body")
 		return
 	}
 
+	h.logger.Debug("Decoded create prompt request",
+		"title", req.Title,
+		"type", req.Type,
+		"content_length", len(req.Content))
+
 	// TODO: Add validation middleware
 	// For now, basic validation
 	if req.Title == "" {
+		h.logger.Debug("Validation failed: title is required")
 		models.WriteBadRequest(w, "Title is required")
 		return
 	}
 	if req.Content == "" {
+		h.logger.Debug("Validation failed: content is required")
 		models.WriteBadRequest(w, "Content is required")
 		return
 	}
@@ -44,40 +60,65 @@ func (h *PromptHandlers) CreatePrompt(w http.ResponseWriter, r *http.Request) {
 	prompt := req.ToPrompt()
 	prompt.ID = uuid.New().String()
 
+	h.logger.Debug("Generated prompt ID and converted to domain model",
+		"prompt_id", prompt.ID,
+		"prompt_type", prompt.Type)
+
 	// Create prompt
 	if err := h.repo.Prompts().Create(r.Context(), prompt); err != nil {
+		h.logger.Error("Failed to create prompt in repository",
+			"prompt_id", prompt.ID,
+			"error", err)
 		models.WriteInternalError(w, "Failed to create prompt")
 		return
 	}
+
+	h.logger.Debug("Successfully created prompt", "prompt_id", prompt.ID)
 
 	// Return created prompt
 	response := models.FromPrompt(prompt)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(response)
+
+	h.logger.Debug("CreatePrompt handler completed successfully", "prompt_id", prompt.ID)
 }
 
 // GetPrompt handles GET /api/prompts/{id}
 func (h *PromptHandlers) GetPrompt(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
+	h.logger.Debug("GetPrompt handler started", "prompt_id", id)
+
 	if id == "" {
+		h.logger.Debug("Validation failed: prompt ID is required")
 		models.WriteBadRequest(w, "Prompt ID is required")
 		return
 	}
 
 	prompt, err := h.repo.Prompts().GetByID(r.Context(), id)
 	if err != nil {
+		h.logger.Debug("Prompt not found in repository", "prompt_id", id, "error", err)
 		models.WriteNotFound(w, "Prompt")
 		return
 	}
 
+	h.logger.Debug("Successfully retrieved prompt",
+		"prompt_id", id,
+		"title", prompt.Title,
+		"type", prompt.Type)
+
 	response := models.FromPrompt(prompt)
 	json.NewEncoder(w).Encode(response)
+
+	h.logger.Debug("GetPrompt handler completed successfully", "prompt_id", id)
 }
 
 // UpdatePrompt handles PUT /api/prompts/{id}
 func (h *PromptHandlers) UpdatePrompt(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
+	h.logger.Debug("UpdatePrompt handler started", "prompt_id", id)
+
 	if id == "" {
+		h.logger.Debug("Validation failed: prompt ID is required")
 		models.WriteBadRequest(w, "Prompt ID is required")
 		return
 	}
@@ -85,48 +126,81 @@ func (h *PromptHandlers) UpdatePrompt(w http.ResponseWriter, r *http.Request) {
 	// Get existing prompt
 	existing, err := h.repo.Prompts().GetByID(r.Context(), id)
 	if err != nil {
+		h.logger.Debug("Prompt not found for update", "prompt_id", id, "error", err)
 		models.WriteNotFound(w, "Prompt")
 		return
 	}
 
+	h.logger.Debug("Retrieved existing prompt for update",
+		"prompt_id", id,
+		"current_title", existing.Title)
+
 	var req models.UpdatePromptRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Debug("Failed to decode update request body", "prompt_id", id, "error", err)
 		models.WriteBadRequest(w, "Invalid JSON body")
 		return
 	}
 
+	// Track what fields are being updated
+	var updatedFields []string
+
 	// Apply updates
 	if req.Title != nil {
+		h.logger.Debug("Updating title", "prompt_id", id, "old_title", existing.Title, "new_title", *req.Title)
 		existing.Title = *req.Title
+		updatedFields = append(updatedFields, "title")
 	}
 	if req.Content != nil {
+		h.logger.Debug("Updating content", "prompt_id", id, "new_content_length", len(*req.Content))
 		existing.Content = *req.Content
+		updatedFields = append(updatedFields, "content")
 	}
 	if req.Type != nil {
+		h.logger.Debug("Updating type", "prompt_id", id, "old_type", existing.Type, "new_type", *req.Type)
 		existing.Type = domainModels.PromptType(*req.Type)
+		updatedFields = append(updatedFields, "type")
 	}
 	if req.UseCase != nil {
 		existing.UseCase = req.UseCase
+		updatedFields = append(updatedFields, "use_case")
 	}
 	if req.ModelCompatibilityTags != nil {
 		existing.ModelCompatibilityTags = domainModels.StringSlice(req.ModelCompatibilityTags)
+		updatedFields = append(updatedFields, "model_compatibility_tags")
 	}
 	if req.TemperatureSuggestion != nil {
 		existing.TemperatureSuggestion = req.TemperatureSuggestion
+		updatedFields = append(updatedFields, "temperature_suggestion")
 	}
 	if req.OtherParameters != nil {
 		existing.OtherParameters = domainModels.JSONMap(req.OtherParameters)
+		updatedFields = append(updatedFields, "other_parameters")
 	}
+
+	h.logger.Debug("Applying updates to prompt",
+		"prompt_id", id,
+		"updated_fields", updatedFields)
 
 	// Update prompt
 	if err := h.repo.Prompts().Update(r.Context(), existing); err != nil {
+		h.logger.Error("Failed to update prompt in repository",
+			"prompt_id", id,
+			"updated_fields", updatedFields,
+			"error", err)
 		models.WriteInternalError(w, "Failed to update prompt")
 		return
 	}
 
+	h.logger.Debug("Successfully updated prompt",
+		"prompt_id", id,
+		"updated_fields", updatedFields)
+
 	// Return updated prompt
 	response := models.FromPrompt(existing)
 	json.NewEncoder(w).Encode(response)
+
+	h.logger.Debug("UpdatePrompt handler completed successfully", "prompt_id", id)
 }
 
 // DeletePrompt handles DELETE /api/prompts/{id}
@@ -147,6 +221,8 @@ func (h *PromptHandlers) DeletePrompt(w http.ResponseWriter, r *http.Request) {
 
 // ListPrompts handles GET /api/prompts
 func (h *PromptHandlers) ListPrompts(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("ListPrompts handler started")
+
 	// Parse query parameters
 	filters := repository.PromptFilters{}
 
@@ -159,19 +235,35 @@ func (h *PromptHandlers) ListPrompts(w http.ResponseWriter, r *http.Request) {
 	if limitParam := r.URL.Query().Get("limit"); limitParam != "" {
 		if limit, err := strconv.Atoi(limitParam); err == nil {
 			filters.Limit = &limit
+		} else {
+			h.logger.Debug("Invalid limit parameter", "limit", limitParam, "error", err)
 		}
 	}
 	if offsetParam := r.URL.Query().Get("offset"); offsetParam != "" {
 		if offset, err := strconv.Atoi(offsetParam); err == nil {
 			filters.Offset = &offset
+		} else {
+			h.logger.Debug("Invalid offset parameter", "offset", offsetParam, "error", err)
 		}
 	}
 
+	h.logger.Debug("Parsed query filters",
+		"type", filters.Type,
+		"use_case", filters.UseCase,
+		"limit", filters.Limit,
+		"offset", filters.Offset)
+
 	prompts, err := h.repo.Prompts().List(r.Context(), filters)
 	if err != nil {
+		h.logger.Error("Failed to list prompts from repository",
+			"filters", filters,
+			"error", err)
 		models.WriteInternalError(w, "Failed to list prompts")
 		return
 	}
+
+	h.logger.Debug("Successfully retrieved prompts from repository",
+		"count", len(prompts))
 
 	responses := models.FromPrompts(prompts)
 
@@ -185,6 +277,9 @@ func (h *PromptHandlers) ListPrompts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(listResponse)
+
+	h.logger.Debug("ListPrompts handler completed successfully",
+		"returned_count", len(responses))
 }
 
 // CreatePromptLink handles POST /api/prompts/{id}/links

@@ -180,7 +180,12 @@ func (r *promptRepository) Delete(ctx context.Context, id string) error {
 
 // List retrieves prompts with filtering
 func (r *promptRepository) List(ctx context.Context, filters PromptFilters) ([]*models.Prompt, error) {
-	r.logger.Debug("Listing prompts with filters")
+	r.logger.Debug("Listing prompts with filters",
+		"type", filters.Type,
+		"use_case", filters.UseCase,
+		"tags", filters.Tags,
+		"limit", filters.Limit,
+		"offset", filters.Offset)
 
 	query := `
 		SELECT id, title, content, type, use_case, model_compatibility_tags,
