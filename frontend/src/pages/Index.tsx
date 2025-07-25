@@ -20,7 +20,7 @@ import {
   WifiOff,
   Loader2
 } from "lucide-react";
-import { getStoredAccentColor, applyThemeColor, getDefaultAccentColor } from "@/lib/colorUtils";
+import { getStoredAccentColor, applyThemeColor, getDefaultAccentColor, initializeTheme, setStoredTheme } from "@/lib/colorUtils";
 import { useHealthCheck } from "@/lib/queries";
 
 interface Variable {
@@ -36,7 +36,7 @@ const Index = () => {
   const [variableValues, setVariableValues] = useState<Record<string, string>>({});
   const [showPreview, setShowPreview] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(true); // Will be updated in useEffect
   const [promptContent, setPromptContent] = useState("");
   const [snippets, setSnippets] = useState<string[]>([]);
   
@@ -49,7 +49,7 @@ const Index = () => {
     error: healthErrorData
   } = useHealthCheck();
 
-  // Initialize accent color on mount
+  // Initialize accent color and theme on mount
   useEffect(() => {
     const storedColor = getStoredAccentColor();
     if (storedColor) {
@@ -58,8 +58,9 @@ const Index = () => {
       applyThemeColor(getDefaultAccentColor());
     }
     
-    // Initialize dark mode
-    document.documentElement.classList.add('dark');
+    // Initialize theme from cookie (defaults to dark mode)
+    const currentTheme = initializeTheme();
+    setIsDarkMode(currentTheme === 'dark');
   }, []);
 
   const handleVariablesChange = useCallback((newVariables: Variable[]) => {
@@ -76,8 +77,10 @@ const Index = () => {
   }, []);
 
   const toggleTheme = () => {
+    const newTheme = isDarkMode ? 'light' : 'dark';
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle('dark');
+    setStoredTheme(newTheme);
   };
 
   const toggleSidebar = () => {

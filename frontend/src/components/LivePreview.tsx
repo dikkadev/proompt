@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { LoadingState } from "@/components/ui/loading-state";
 import { 
   Eye, 
   Copy, 
   Download, 
-  RefreshCw,
   AlertTriangle,
   Code,
   FileText,
@@ -131,7 +132,7 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
       parts.push(
         <span 
           key={`var-${match.index}`}
-          className="bg-red-100 text-red-800 px-1 py-0.5 rounded text-xs font-medium border border-red-200"
+          className="bg-variable-missing/10 text-variable-missing px-1 py-0.5 rounded text-xs font-medium border border-variable-missing/30"
           title="Missing variable value"
         >
           {match[0]}
@@ -169,10 +170,7 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
               <Eye className="h-4 w-4 text-muted-foreground" />
               <h3 className="font-medium">Live Preview</h3>
               {isLoading && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <RefreshCw className="h-3 w-3 animate-spin loading-spinner" />
-                  <span>Generating...</span>
-                </div>
+                <LoadingState size="sm" inline message="Generating..." />
               )}
             </div>
             
@@ -203,17 +201,17 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
           {/* Pills Row */}
           <div className="flex items-center gap-2">
             {hasWarnings && (
-              <Badge variant="outline" className="gap-1 border-warning text-warning">
+              <StatusBadge status="warning">
                 <AlertTriangle className="h-3 w-3" />
                 {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
-              </Badge>
+              </StatusBadge>
             )}
             
             {hasUnresolvedVariables && (
-              <Badge variant="outline" className="gap-1 border-variable-missing text-variable-missing">
+              <StatusBadge status="missing">
                 <AlertTriangle className="h-3 w-3" />
                 Missing variables
-              </Badge>
+              </StatusBadge>
             )}
           </div>
         </div>
@@ -227,24 +225,21 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
             </div>
             
             {isLoading && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <RefreshCw className="h-3 w-3 animate-spin loading-spinner" />
-                <span>Generating...</span>
-              </div>
+              <LoadingState size="sm" inline message="Generating..." />
             )}
             
             {hasWarnings && (
-              <Badge variant="outline" className="gap-1 border-warning text-warning">
+              <StatusBadge status="warning">
                 <AlertTriangle className="h-3 w-3" />
                 {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
-              </Badge>
+              </StatusBadge>
             )}
             
             {hasUnresolvedVariables && (
-              <Badge variant="outline" className="gap-1 border-variable-missing text-variable-missing">
+              <StatusBadge status="missing">
                 <AlertTriangle className="h-3 w-3" />
                 Missing variables
-              </Badge>
+              </StatusBadge>
             )}
           </div>
           
@@ -304,10 +299,10 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
                  variant="outline"
                  className={`text-xs px-2 py-0.5 ${
                    variable.status === 'provided' 
-                     ? 'border-green-300 text-green-700 bg-green-50'
+                     ? 'border-variable-provided/30 text-variable-provided bg-variable-provided/10'
                      : variable.status === 'default'
-                     ? 'border-yellow-300 text-yellow-700 bg-yellow-50'
-                     : 'border-red-300 text-red-700 bg-red-50'
+                     ? 'border-variable-default/30 text-variable-default bg-variable-default/10'
+                     : 'border-variable-missing/30 text-variable-missing bg-variable-missing/10'
                  }`}
                  title={
                    variable.status === 'provided' 
@@ -372,19 +367,19 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
                                 <div className="flex items-center gap-2">
              {previewVariables.filter(v => v.status === 'provided').length > 0 && (
                <div className="flex items-center gap-1">
-                 <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                 <div className="w-2 h-2 rounded-full bg-variable-provided"></div>
                  <span>{previewVariables.filter(v => v.status === 'provided').length} provided</span>
                </div>
              )}
              {previewVariables.filter(v => v.status === 'default').length > 0 && (
                <div className="flex items-center gap-1">
-                 <div className="w-2 h-2 rounded-full bg-yellow-600"></div>
+                 <div className="w-2 h-2 rounded-full bg-variable-default"></div>
                  <span>{previewVariables.filter(v => v.status === 'default').length} default</span>
                </div>
              )}
              {previewVariables.filter(v => v.status === 'missing').length > 0 && (
                <div className="flex items-center gap-1">
-                 <div className="w-2 h-2 rounded-full bg-red-600"></div>
+                 <div className="w-2 h-2 rounded-full bg-variable-missing"></div>
                  <span>{previewVariables.filter(v => v.status === 'missing').length} missing</span>
                </div>
              )}

@@ -116,3 +116,37 @@ export function getStoredAccentColor(): string | null {
 export function getDefaultAccentColor(): string {
   return '#1e9fa2'; // Default teal color
 }
+
+// Theme persistence utilities
+export function getStoredTheme(): 'dark' | 'light' | null {
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'proompt-theme') {
+      return value as 'dark' | 'light';
+    }
+  }
+  return null;
+}
+
+export function setStoredTheme(theme: 'dark' | 'light') {
+  document.cookie = `proompt-theme=${theme}; path=/; max-age=${365 * 24 * 60 * 60}`; // 1 year
+}
+
+export function getDefaultTheme(): 'dark' | 'light' {
+  return 'dark'; // Default to dark mode
+}
+
+export function initializeTheme(): 'dark' | 'light' {
+  const storedTheme = getStoredTheme();
+  const theme = storedTheme || getDefaultTheme();
+  
+  // Apply theme class to document
+  if (theme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+  
+  return theme;
+}

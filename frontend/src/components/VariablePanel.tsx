@@ -3,9 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Hash, AlertCircle, CheckCircle, Clock, X, FileText } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { VariableStateIcon } from "@/components/ui/variable-state-icon";
+import { Hash, X, FileText } from "lucide-react";
 
 interface Variable {
   name: string;
@@ -43,32 +45,7 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
     return 'missing';
   };
 
-  const getStateIcon = (state: string) => {
-    switch (state) {
-      case 'provided':
-        return <CheckCircle className="h-4 w-4 text-variable-provided" />;
-      case 'default':
-        return <Clock className="h-4 w-4 text-variable-default" />;
-      case 'missing':
-        return <AlertCircle className="h-4 w-4 text-variable-missing" />;
-      default:
-        return null;
-    }
-  };
 
-  const getStateBadge = (state: string) => {
-    const baseClasses = "text-xs px-2 py-0.5";
-    switch (state) {
-      case 'provided':
-        return `${baseClasses} bg-variable-provided/10 text-variable-provided border-variable-provided/30`;
-      case 'default':
-        return `${baseClasses} bg-variable-default/10 text-variable-default border-variable-default/30`;
-      case 'missing':
-        return `${baseClasses} bg-variable-missing/10 text-variable-missing border-variable-missing/30`;
-      default:
-        return baseClasses;
-    }
-  };
 
   const getInputClasses = (state: string) => {
     switch (state) {
@@ -105,16 +82,16 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
         {variables.length > 0 && (
           <div className="flex gap-3 text-sm">
             <div className="flex items-center gap-1">
-                          <CheckCircle className="h-3 w-3 text-variable-provided" />
-            <span className="text-variable-provided">{stateCounts.provided || 0}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="h-3 w-3 text-variable-default" />
-            <span className="text-variable-default">{stateCounts.default || 0}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <AlertCircle className="h-3 w-3 text-variable-missing" />
-            <span className="text-variable-missing">{stateCounts.missing || 0}</span>
+              <VariableStateIcon state="provided" size="sm" />
+              <span className="text-variable-provided">{stateCounts.provided || 0}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <VariableStateIcon state="default" size="sm" />
+              <span className="text-variable-default">{stateCounts.default || 0}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <VariableStateIcon state="missing" size="sm" />
+              <span className="text-variable-missing">{stateCounts.missing || 0}</span>
             </div>
           </div>
         )}
@@ -141,10 +118,10 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
                       {variable.name}
                     </Label>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className={getStateBadge(state)}>
+                      <StatusBadge status={state}>
                         {state === 'provided' ? 'Set' : state === 'default' ? 'Default' : 'Required'}
-                      </Badge>
-                      {getStateIcon(state)}
+                      </StatusBadge>
+                      <VariableStateIcon state={state} />
                     </div>
                   </div>
                   
@@ -195,7 +172,7 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
                 <Badge
                   key={snippet}
                   variant="outline"
-                  className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200"
+                  className="text-xs px-2 py-0.5 bg-primary/10 text-primary border-primary/30"
                 >
                   @{snippet}
                 </Badge>
