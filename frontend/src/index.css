@@ -444,3 +444,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* View Transitions */
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: 70ms;
+  animation-easing-function: ease-in-out;
+}

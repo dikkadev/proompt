@@ -86,10 +86,20 @@ Please format your response as:
     }
     
     setVariables(found);
-    setSnippets(foundSnippets);
+    
+    // Use view transition for snippet changes that might affect layout
+    if (foundSnippets.length !== snippets.length) {
+      document.startViewTransition(() => {
+        setSnippets(foundSnippets);
+        onSnippetsChange(foundSnippets);
+      });
+    } else {
+      setSnippets(foundSnippets);
+      onSnippetsChange(foundSnippets);
+    }
+    
     onVariablesChange(found);
     onContentChange(content);
-    onSnippetsChange(foundSnippets);
   }, [content, onVariablesChange, onContentChange, onSnippetsChange]);
 
   const handleSave = async () => {

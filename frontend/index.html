@@ -12,6 +12,29 @@
     <meta property="og:type" content="website" />
 
     <meta name="twitter:card" content="summary_large_image" />
+    
+    <!-- View Transitions API polyfill -->
+    <script>
+      const supportsViewTransitions = 'startViewTransition' in document;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      
+      if (!supportsViewTransitions) {
+        console.debug('View Transition API not supported, using fallback');
+      } else if (reducedMotion) {
+        console.debug('User prefers reduced motion, using view transition fallback');
+      }
+      
+      if (!supportsViewTransitions || reducedMotion) {
+        document.startViewTransition = function(callback) {
+          callback();
+          return {
+            finished: Promise.resolve(),
+            ready: Promise.resolve(),
+            updateCallbackDone: Promise.resolve()
+          };
+        };
+      }
+    </script>
   </head>
 
   <body>

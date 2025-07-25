@@ -78,13 +78,23 @@ const Index = () => {
 
   const toggleTheme = () => {
     const newTheme = isDarkMode ? 'light' : 'dark';
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
-    setStoredTheme(newTheme);
+    document.startViewTransition(() => {
+      setIsDarkMode(!isDarkMode);
+      document.documentElement.classList.toggle('dark');
+      setStoredTheme(newTheme);
+    });
   };
 
   const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+    document.startViewTransition(() => {
+      setSidebarCollapsed(!sidebarCollapsed);
+    });
+  };
+
+  const handleCommandPaletteChange = (open: boolean) => {
+    document.startViewTransition(() => {
+      setCommandPaletteOpen(open);
+    });
   };
 
   return (
@@ -115,7 +125,7 @@ const Index = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setCommandPaletteOpen(true)}
+              onClick={() => handleCommandPaletteChange(true)}
               className="gap-2"
             >
               <Search className="h-4 w-4" />
@@ -244,7 +254,7 @@ const Index = () => {
       {/* Command Palette */}
       <CommandPalette
         open={commandPaletteOpen}
-        onOpenChange={setCommandPaletteOpen}
+        onOpenChange={handleCommandPaletteChange}
       />
 
       {/* Color Picker */}
