@@ -170,7 +170,7 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
               <h3 className="font-medium">Live Preview</h3>
               {isLoading && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <RefreshCw className="h-3 w-3 animate-spin" />
+                  <RefreshCw className="h-3 w-3 animate-spin loading-spinner" />
                   <span>Generating...</span>
                 </div>
               )}
@@ -182,7 +182,7 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
                 size="sm"
                 onClick={handleCopy}
                 disabled={!resolvedContent || isLoading}
-                className="gap-2"
+                className="gap-2 ghost-icon-button"
               >
                 <Copy className="h-4 w-4" />
                 Copy
@@ -192,7 +192,7 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
                 size="sm"
                 onClick={handleDownload}
                 disabled={!resolvedContent || isLoading}
-                className="gap-2"
+                className="gap-2 ghost-icon-button"
               >
                 <Download className="h-4 w-4" />
                 Download
@@ -228,7 +228,7 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
             
             {isLoading && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <RefreshCw className="h-3 w-3 animate-spin" />
+                <RefreshCw className="h-3 w-3 animate-spin loading-spinner" />
                 <span>Generating...</span>
               </div>
             )}
@@ -254,21 +254,21 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
               size="sm"
               onClick={handleCopy}
               disabled={!resolvedContent || isLoading}
-              className="gap-2"
+              className="gap-2 ghost-icon-button"
             >
               <Copy className="h-4 w-4" />
               Copy
             </Button>
-                         <Button
-               variant="ghost"
-               size="sm"
-               onClick={handleDownload}
-               disabled={!resolvedContent || isLoading}
-               className="gap-2"
-             >
-               <Download className="h-4 w-4" />
-               Download
-             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDownload}
+              disabled={!resolvedContent || isLoading}
+              className="gap-2 ghost-icon-button"
+            >
+              <Download className="h-4 w-4" />
+              Download
+            </Button>
           </div>
         </div>
       </div>

@@ -191,12 +191,12 @@ Please format your response as:
               variant="ghost"
               size="sm"
               onClick={() => onPreviewToggle(!showPreview)}
-              className="gap-2"
+              className="gap-2 ghost-icon-button"
             >
               {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               {showPreview ? 'Hide Preview' : 'Show Preview'}
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleCopy} className="gap-2">
+            <Button variant="ghost" size="sm" onClick={handleCopy} className="gap-2 ghost-icon-button">
               <Copy className="h-4 w-4" />
               Copy
             </Button>
@@ -204,7 +204,7 @@ Please format your response as:
               variant="ghost" 
               size="sm" 
               onClick={handleSave} 
-              className="gap-2"
+              className="gap-2 ghost-icon-button"
               disabled={createPromptMutation.isPending || updatePromptMutation.isPending}
             >
               <Save className="h-4 w-4" />
@@ -233,12 +233,12 @@ Please format your response as:
               variant="ghost"
               size="sm"
               onClick={() => onPreviewToggle(!showPreview)}
-              className="gap-2"
+              className="gap-2 ghost-icon-button"
             >
               {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               {showPreview ? 'Hide Preview' : 'Show Preview'}
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleCopy} className="gap-2">
+            <Button variant="ghost" size="sm" onClick={handleCopy} className="gap-2 ghost-icon-button">
               <Copy className="h-4 w-4" />
               Copy
             </Button>
@@ -246,7 +246,7 @@ Please format your response as:
               variant="ghost" 
               size="sm" 
               onClick={handleSave} 
-              className="gap-2"
+              className="gap-2 ghost-icon-button"
               disabled={createPromptMutation.isPending || updatePromptMutation.isPending}
             >
               <Save className="h-4 w-4" />

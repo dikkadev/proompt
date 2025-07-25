@@ -46,11 +46,11 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
   const getStateIcon = (state: string) => {
     switch (state) {
       case 'provided':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
+        return <CheckCircle className="h-4 w-4 text-variable-provided" />;
       case 'default':
-        return <Clock className="h-4 w-4 text-yellow-600" />;
+        return <Clock className="h-4 w-4 text-variable-default" />;
       case 'missing':
-        return <AlertCircle className="h-4 w-4 text-red-600" />;
+        return <AlertCircle className="h-4 w-4 text-variable-missing" />;
       default:
         return null;
     }
@@ -60,11 +60,11 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
     const baseClasses = "text-xs px-2 py-0.5";
     switch (state) {
       case 'provided':
-        return `${baseClasses} bg-green-50 text-green-700 border-green-200`;
+        return `${baseClasses} bg-variable-provided/10 text-variable-provided border-variable-provided/30`;
       case 'default':
-        return `${baseClasses} bg-yellow-50 text-yellow-700 border-yellow-200`;
+        return `${baseClasses} bg-variable-default/10 text-variable-default border-variable-default/30`;
       case 'missing':
-        return `${baseClasses} bg-red-50 text-red-700 border-red-200`;
+        return `${baseClasses} bg-variable-missing/10 text-variable-missing border-variable-missing/30`;
       default:
         return baseClasses;
     }
@@ -73,11 +73,11 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
   const getInputClasses = (state: string) => {
     switch (state) {
       case 'provided':
-        return "border-green-300 focus:border-green-500 focus:ring-green-500/20";
+        return "border-variable-provided/50 focus:border-variable-provided focus:ring-variable-provided/20";
       case 'default':
-        return "border-yellow-300 focus:border-yellow-500 focus:ring-yellow-500/20";
+        return "border-variable-default/50 focus:border-variable-default focus:ring-variable-default/20";
       case 'missing':
-        return "border-red-300 focus:border-red-500 focus:ring-red-500/20";
+        return "border-variable-missing/50 focus:border-variable-missing focus:ring-variable-missing/20";
       default:
         return "";
     }
@@ -105,16 +105,16 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
         {variables.length > 0 && (
           <div className="flex gap-3 text-sm">
             <div className="flex items-center gap-1">
-              <CheckCircle className="h-3 w-3 text-green-600" />
-              <span className="text-green-700">{stateCounts.provided || 0}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3 text-yellow-600" />
-              <span className="text-yellow-700">{stateCounts.default || 0}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <AlertCircle className="h-3 w-3 text-red-600" />
-              <span className="text-red-700">{stateCounts.missing || 0}</span>
+                          <CheckCircle className="h-3 w-3 text-variable-provided" />
+            <span className="text-variable-provided">{stateCounts.provided || 0}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Clock className="h-3 w-3 text-variable-default" />
+            <span className="text-variable-default">{stateCounts.default || 0}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <AlertCircle className="h-3 w-3 text-variable-missing" />
+            <span className="text-variable-missing">{stateCounts.missing || 0}</span>
             </div>
           </div>
         )}

@@ -188,6 +188,72 @@
   }
 }
 
+/* Variable State Colors */
+.text-variable-provided {
+  color: hsl(var(--variable-provided));
+}
+
+.text-variable-default {
+  color: hsl(var(--variable-default));
+}
+
+.text-variable-missing {
+  color: hsl(var(--variable-missing));
+}
+
+.border-variable-provided {
+  border-color: hsl(var(--variable-provided));
+}
+
+.border-variable-default {
+  border-color: hsl(var(--variable-default));
+}
+
+.border-variable-missing {
+  border-color: hsl(var(--variable-missing));
+}
+
+.bg-variable-provided {
+  background-color: hsl(var(--variable-provided));
+}
+
+.bg-variable-default {
+  background-color: hsl(var(--variable-default));
+}
+
+.bg-variable-missing {
+  background-color: hsl(var(--variable-missing));
+}
+
+/* Resizer Handle Accent Colors */
+.resizer-handle:hover .resizer-grip {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+.resizer-handle[data-resize-handle-state="drag"] {
+  background-color: hsl(var(--primary) / 0.2);
+}
+
+.resizer-handle[data-resize-handle-state="drag"] .resizer-grip {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+/* Icon Button Accent Colors */
+.ghost-icon-button {
+  cursor: pointer;
+}
+
+.ghost-icon-button:hover svg {
+  color: hsl(var(--primary));
+}
+
+/* Loading Indicator Accent Colors */
+.loading-spinner {
+  color: hsl(var(--primary) / 0.7);
+}
+
 /*
   The default border color has changed to `currentcolor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still

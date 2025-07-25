@@ -247,7 +247,8 @@ const Index = () => {
       {/* Color Picker */}
       <ColorPicker />
 
-      {/* Keyboard Shortcuts Help */}
+      {/* TODO: Redesign keyboard shortcuts helper - currently too generic, needs better UX integration */}
+      {/* 
       <div className="fixed bottom-4 right-4 text-xs text-muted-foreground bg-card border border-border rounded-lg px-3 py-2 shadow-lg">
         <div className="flex items-center gap-2">
           <kbd className="pointer-events-none inline-flex h-4 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground">
@@ -261,6 +262,7 @@ const Index = () => {
           <span>Help</span>
         </div>
       </div>
+      */}
     </div>
   );
 };
