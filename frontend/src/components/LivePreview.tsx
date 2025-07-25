@@ -11,9 +11,13 @@ import {
   RefreshCw,
   AlertTriangle,
   Code,
-  FileText
+  FileText,
+  Hash,
+  WifiOff
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useTemplatePreviewMutation } from "@/lib/queries";
+import { debounce } from "@/lib/utils";
 
 interface Variable {
   name: string;
@@ -31,48 +35,55 @@ interface LivePreviewProps {
 
 export function LivePreview({ content, variables, variableValues, isVisible }: LivePreviewProps) {
   const [resolvedContent, setResolvedContent] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [unresolvedVariables, setUnresolvedVariables] = useState<string[]>([]);
+  const [previewVariables, setPreviewVariables] = useState<Array<{
+    name: string;
+    defaultValue?: string;
+    hasDefault: boolean;
+    status: 'provided' | 'default' | 'missing';
+  }>>([]);
+  const [warnings, setWarnings] = useState<string[]>([]);
+  
+  const templatePreviewMutation = useTemplatePreviewMutation();
+
+  // Debounced preview function to avoid too many API calls
+  const debouncedPreview = debounce(async (contentToPreview: string, vars: Record<string, string>) => {
+    if (!contentToPreview.trim() || !isVisible) {
+      setResolvedContent('');
+      setPreviewVariables([]);
+      setWarnings([]);
+      return;
+    }
+
+    try {
+      const result = await templatePreviewMutation.mutateAsync({
+        content: contentToPreview,
+        variables: vars
+      });
+
+      setResolvedContent(result.resolved_content);
+      setPreviewVariables(result.variables.map(v => ({
+        name: v.name,
+        defaultValue: v.default_value,
+        hasDefault: v.has_default,
+        status: v.status
+      })));
+      setWarnings(result.warnings || []);
+    } catch (error) {
+      // Error is already handled by the mutation's onError
+      setResolvedContent('');
+      setPreviewVariables([]);
+      setWarnings([]);
+    }
+  }, 300);
 
   useEffect(() => {
-    if (!isVisible) return;
+    if (isVisible && content) {
+      debouncedPreview(content, variableValues);
+    }
     
-    setIsLoading(true);
-    
-    // Simulate API call delay
-    const timer = setTimeout(() => {
-      let resolved = content;
-      const unresolved: string[] = [];
-      
-      // Replace variables with values
-      const variableRegex = /\{\{([^}]+)\}\}/g;
-      resolved = resolved.replace(variableRegex, (match, varContent) => {
-        const [name, defaultValue] = varContent.split(':');
-        const trimmedName = name.trim();
-        
-        if (variableValues[trimmedName]) {
-          return variableValues[trimmedName];
-        } else if (defaultValue) {
-          return defaultValue.trim();
-        } else {
-          unresolved.push(trimmedName);
-          return `{{${trimmedName}}}`;
-        }
-      });
-      
-      // Replace snippets with mock content
-      const snippetRegex = /@(\w+|\{[^}]+\})/g;
-      resolved = resolved.replace(snippetRegex, (match, snippetName) => {
-        const cleanName = snippetName.replace(/[{}]/g, '');
-        return `[Snippet: ${cleanName}]`;
-      });
-      
-      setResolvedContent(resolved);
-      setUnresolvedVariables(unresolved);
-      setIsLoading(false);
-    }, 300);
-    
-    return () => clearTimeout(timer);
+    return () => {
+      debouncedPreview.cancel();
+    };
   }, [content, variableValues, isVisible]);
 
   const handleCopy = () => {
@@ -84,11 +95,14 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
   };
 
   const handleDownload = () => {
-    const blob = new Blob([resolvedContent], { type: 'text/plain' });
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const filename = `prompt-export-${timestamp}.md`;
+    
+    const blob = new Blob([resolvedContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'prompt-preview.txt';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -96,114 +110,222 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
     
     toast({
       title: "Downloaded",
-      description: "Preview saved as prompt-preview.txt",
+      description: `Preview exported as ${filename}`,
     });
   };
 
-  const handleRefresh = () => {
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 500);
+  // Function to highlight unresolved variables in the content
+  const renderContentWithHighlights = (content: string) => {
+    const variableRegex = /\{\{([^}]+)\}\}/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = variableRegex.exec(content)) !== null) {
+      // Add text before the variable
+      if (match.index > lastIndex) {
+        parts.push(content.slice(lastIndex, match.index));
+      }
+      
+      // Add the highlighted variable
+      parts.push(
+        <span 
+          key={`var-${match.index}`}
+          className="bg-red-100 text-red-800 px-1 py-0.5 rounded text-xs font-medium border border-red-200"
+          title="Missing variable value"
+        >
+          {match[0]}
+        </span>
+      );
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add remaining text
+    if (lastIndex < content.length) {
+      parts.push(content.slice(lastIndex));
+    }
+    
+    return parts.length > 1 ? parts : content;
   };
+
+  const isLoading = templatePreviewMutation.isPending;
+  const hasWarnings = warnings.length > 0;
+  const hasUnresolvedVariables = previewVariables.some(v => v.status === 'missing');
 
   if (!isVisible) {
     return null;
   }
 
-  const completionPercentage = variables.length > 0 
-    ? Math.round(((variables.length - unresolvedVariables.length) / variables.length) * 100)
-    : 100;
-
   return (
-    <Card className="h-full flex flex-col bg-workspace-preview">
+    <div className="flex flex-col h-full bg-workspace-preview overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-3">
+      <div className="px-4 py-2 border-b border-border bg-card flex-shrink-0">
+        {/* Mobile/Narrow: Two rows */}
+        <div className="lg:hidden">
+          {/* Title Row */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4 text-muted-foreground" />
+              <h3 className="font-medium">Live Preview</h3>
+              {isLoading && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <RefreshCw className="h-3 w-3 animate-spin" />
+                  <span>Generating...</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCopy}
+                disabled={!resolvedContent || isLoading}
+                className="gap-2"
+              >
+                <Copy className="h-4 w-4" />
+                Copy
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDownload}
+                disabled={!resolvedContent || isLoading}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download
+              </Button>
+            </div>
+          </div>
+          
+          {/* Pills Row */}
           <div className="flex items-center gap-2">
-            <Eye className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">Live Preview</h3>
-            <Badge variant="secondary" className="ml-2">
-              {completionPercentage}% Complete
-            </Badge>
+            {hasWarnings && (
+              <Badge variant="outline" className="gap-1 border-warning text-warning">
+                <AlertTriangle className="h-3 w-3" />
+                {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
+              </Badge>
+            )}
+            
+            {hasUnresolvedVariables && (
+              <Badge variant="outline" className="gap-1 border-variable-missing text-variable-missing">
+                <AlertTriangle className="h-3 w-3" />
+                Missing variables
+              </Badge>
+            )}
+          </div>
+        </div>
+        
+        {/* Desktop/Wide: Single row */}
+        <div className="hidden lg:flex lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4 text-muted-foreground" />
+              <h3 className="font-medium">Live Preview</h3>
+            </div>
+            
+            {isLoading && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <RefreshCw className="h-3 w-3 animate-spin" />
+                <span>Generating...</span>
+              </div>
+            )}
+            
+            {hasWarnings && (
+              <Badge variant="outline" className="gap-1 border-warning text-warning">
+                <AlertTriangle className="h-3 w-3" />
+                {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
+              </Badge>
+            )}
+            
+            {hasUnresolvedVariables && (
+              <Badge variant="outline" className="gap-1 border-variable-missing text-variable-missing">
+                <AlertTriangle className="h-3 w-3" />
+                Missing variables
+              </Badge>
+            )}
           </div>
           
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isLoading}
-              className="gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleCopy}
-              disabled={isLoading}
+              disabled={!resolvedContent || isLoading}
               className="gap-2"
             >
               <Copy className="h-4 w-4" />
+              Copy
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDownload}
-              disabled={isLoading}
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
+                         <Button
+               variant="ghost"
+               size="sm"
+               onClick={handleDownload}
+               disabled={!resolvedContent || isLoading}
+               className="gap-2"
+             >
+               <Download className="h-4 w-4" />
+               Download
+             </Button>
           </div>
-        </div>
-
-        {/* Status Indicators */}
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-variable-provided"></div>
-              <span className="text-muted-foreground">
-                {variables.length - unresolvedVariables.length} resolved
-              </span>
-            </div>
-            {unresolvedVariables.length > 0 && (
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-variable-missing"></div>
-                <span className="text-muted-foreground">
-                  {unresolvedVariables.length} missing
-                </span>
-              </div>
-            )}
-          </div>
-          
-          {isLoading && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <RefreshCw className="h-3 w-3 animate-spin" />
-              <span className="text-xs">Updating...</span>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Warnings */}
-      {unresolvedVariables.length > 0 && (
-        <div className="p-3 bg-warning/10 border-b border-warning/20">
+      {/* Warnings Section */}
+      {hasWarnings && (
+        <div className="p-3 bg-warning/10 border-b border-warning/20 flex-shrink-0">
           <div className="flex items-start gap-2">
-            <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
-            <div className="text-sm">
-              <p className="text-warning font-medium mb-1">
-                Unresolved Variables
-              </p>
-              <p className="text-muted-foreground text-xs">
-                The following variables need values: {unresolvedVariables.join(', ')}
-              </p>
+            <AlertTriangle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-warning">Warnings</p>
+              <ul className="text-xs text-warning/80 space-y-1">
+                {warnings.map((warning, index) => (
+                  <li key={index}>• {warning}</li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
       )}
 
-      {/* Preview Content */}
-      <div className="flex-1 relative">
+             {/* Variable Status Bar */}
+       {previewVariables.length > 0 && (
+         <div className="p-3 bg-muted/30 border-b border-border flex-shrink-0">
+           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+             <Hash className="h-3 w-3" />
+             Variables ({previewVariables.length})
+           </div>
+           <div className="flex flex-wrap gap-1">
+             {previewVariables.map((variable) => (
+               <Badge
+                 key={variable.name}
+                 variant="outline"
+                 className={`text-xs px-2 py-0.5 ${
+                   variable.status === 'provided' 
+                     ? 'border-green-300 text-green-700 bg-green-50'
+                     : variable.status === 'default'
+                     ? 'border-yellow-300 text-yellow-700 bg-yellow-50'
+                     : 'border-red-300 text-red-700 bg-red-50'
+                 }`}
+                 title={
+                   variable.status === 'provided' 
+                     ? `Provided: ${variableValues[variable.name]}`
+                     : variable.status === 'default'
+                     ? `Using default: ${variable.defaultValue}`
+                     : 'Missing value'
+                 }
+               >
+                 {variable.name}
+               </Badge>
+             ))}
+           </div>
+         </div>
+       )}
+
+      {/* Content */}
+      <div className="flex-1 relative overflow-hidden">
         <ScrollArea className="h-full">
           <div className="p-4">
             {isLoading ? (
@@ -211,52 +333,64 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
                 {[...Array(6)].map((_, i) => (
                   <div 
                     key={i}
-                    className="h-4 bg-muted rounded animate-pulse-soft"
+                    className="h-4 bg-muted rounded animate-pulse"
                     style={{ width: `${60 + Math.random() * 40}%` }}
                   />
                 ))}
               </div>
-            ) : (
-              <div className="prose prose-sm max-w-none">
+            ) : resolvedContent ? (
+              <div className="prose prose-sm max-w-none dark:prose-invert">
                 <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-foreground bg-transparent border-none p-0">
-                  {resolvedContent || 'Preview will appear here as you type...'}
+                  {renderContentWithHighlights(resolvedContent)}
                 </pre>
+              </div>
+            ) : content ? (
+              <div className="text-center text-muted-foreground py-8">
+                <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Failed to generate preview</p>
+                <p className="text-xs">Check your template syntax and backend connection</p>
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-8">
+                <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Start typing to see a live preview...</p>
               </div>
             )}
           </div>
         </ScrollArea>
-
-        {/* Loading Overlay */}
-        {isLoading && (
-          <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <RefreshCw className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Generating preview...</span>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Footer Stats */}
-      <div className="p-3 border-t border-border bg-muted/50">
-        <div className="flex justify-between items-center text-xs text-muted-foreground">
+      {resolvedContent && (
+        <div className="flex items-center justify-between p-3 border-t border-border bg-card text-xs text-muted-foreground flex-shrink-0">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <FileText className="h-3 w-3" />
-              <span>{resolvedContent.split(' ').length} words</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Code className="h-3 w-3" />
-              <span>{resolvedContent.length} characters</span>
-            </div>
+            <span>{resolvedContent.length} characters</span>
+            <span>{resolvedContent.split('\n').length} lines</span>
+            <span>~{Math.ceil(resolvedContent.length / 4)} tokens</span>
           </div>
           
-          <div className="flex items-center gap-1">
-            <div className="w-1 h-1 rounded-full bg-primary animate-pulse"></div>
-            <span>Live</span>
-          </div>
+                                <div className="flex items-center gap-2">
+             {previewVariables.filter(v => v.status === 'provided').length > 0 && (
+               <div className="flex items-center gap-1">
+                 <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                 <span>{previewVariables.filter(v => v.status === 'provided').length} provided</span>
+               </div>
+             )}
+             {previewVariables.filter(v => v.status === 'default').length > 0 && (
+               <div className="flex items-center gap-1">
+                 <div className="w-2 h-2 rounded-full bg-yellow-600"></div>
+                 <span>{previewVariables.filter(v => v.status === 'default').length} default</span>
+               </div>
+             )}
+             {previewVariables.filter(v => v.status === 'missing').length > 0 && (
+               <div className="flex items-center gap-1">
+                 <div className="w-2 h-2 rounded-full bg-red-600"></div>
+                 <span>{previewVariables.filter(v => v.status === 'missing').length} missing</span>
+               </div>
+             )}
+           </div>
         </div>
-      </div>
-    </Card>
+      )}
+    </div>
   );
 }

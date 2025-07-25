@@ -7,6 +7,7 @@ import { LivePreview } from "@/components/LivePreview";
 import { ColorPicker } from "@/components/ColorPicker";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { 
   Search, 
   Command, 
@@ -14,9 +15,13 @@ import {
   Moon, 
   Sun,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Wifi,
+  WifiOff,
+  Loader2
 } from "lucide-react";
 import { getStoredAccentColor, applyThemeColor, getDefaultAccentColor } from "@/lib/colorUtils";
+import { useHealthCheck } from "@/lib/queries";
 
 interface Variable {
   name: string;
@@ -32,6 +37,17 @@ const Index = () => {
   const [showPreview, setShowPreview] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [promptContent, setPromptContent] = useState("");
+  const [snippets, setSnippets] = useState<string[]>([]);
+  
+  // Health check
+  const { 
+    data: healthData, 
+    isError: healthError, 
+    isLoading: healthLoading,
+    isFetching: healthFetching,
+    error: healthErrorData
+  } = useHealthCheck();
 
   // Initialize accent color on mount
   useEffect(() => {
@@ -69,9 +85,9 @@ const Index = () => {
   };
 
   return (
-    <div className={`min-h-screen w-full bg-background text-foreground ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`h-screen w-full bg-background text-foreground overflow-hidden ${isDarkMode ? 'dark' : ''}`}>
       {/* Global Header */}
-      <header className="h-14 border-b border-border bg-card px-4 flex items-center justify-between">
+      <header className="h-14 border-b border-border bg-card px-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
@@ -109,6 +125,27 @@ const Index = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Backend Status Indicator */}
+          <div 
+            className="flex items-center gap-2 text-xs"
+            title={
+              healthError 
+                ? `Backend offline: ${healthErrorData?.message || 'Connection failed'}` 
+                : healthData 
+                ? `Backend connected - Status: ${healthData.status}, Version: ${healthData.version}`
+                : healthLoading 
+                ? 'Checking backend connection...'
+                : 'Connecting to backend...'
+            }
+          >
+            <div className={`w-2 h-2 rounded-full ${
+              healthError ? 'bg-red-500' : healthData ? 'bg-green-500' : 'bg-yellow-500'
+            }`} />
+            <span className="text-muted-foreground">
+              {healthError ? 'Offline' : healthData ? 'Connected' : 'Connecting...'}
+            </span>
+          </div>
+          
           <Button
             variant="ghost"
             size="sm"
@@ -125,49 +162,80 @@ const Index = () => {
       </header>
 
       {/* Main Layout */}
-      <div className="flex h-[calc(100vh-3.5rem)] w-full">
-        {/* Left Sidebar - Snippets */}
-        <div className={`border-r border-border transition-all duration-300 ${
-          sidebarCollapsed ? 'w-14' : 'w-80'
-        }`}>
-          <SnippetSidebar
-            onSnippetInsert={handleSnippetInsert}
-            isCollapsed={sidebarCollapsed}
-            onToggleCollapse={toggleSidebar}
-          />
-        </div>
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Editor */}
-          <div className={`${showPreview ? 'h-3/5' : 'flex-1'} border-b border-border`}>
-            <PromptEditor
-              onVariablesChange={handleVariablesChange}
-              onPreviewToggle={setShowPreview}
-              showPreview={showPreview}
+      <div className="h-[calc(100vh-3.5rem)] w-full overflow-hidden">
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          {/* Left Sidebar - Snippets */}
+          <ResizablePanel 
+            defaultSize={20} 
+            minSize={5} 
+            maxSize={30}
+            className="border-r border-border"
+          >
+            <SnippetSidebar
+              onSnippetInsert={handleSnippetInsert}
+              isCollapsed={sidebarCollapsed}
+              onToggleCollapse={toggleSidebar}
             />
-          </div>
+          </ResizablePanel>
 
-          {/* Preview Panel */}
-          {showPreview && (
-            <div className="h-2/5">
-              <LivePreview
-                content="" // This would come from the editor
-                variables={variables}
-                variableValues={variableValues}
-                isVisible={showPreview}
+          <ResizableHandle withHandle />
+
+          {/* Main Content Area */}
+          <ResizablePanel defaultSize={60} minSize={40} className="flex flex-col min-w-0 overflow-hidden">
+          {showPreview ? (
+            <ResizablePanelGroup direction="vertical" className="flex-1">
+              {/* Editor */}
+              <ResizablePanel defaultSize={60} minSize={30}>
+                <PromptEditor
+                  onVariablesChange={handleVariablesChange}
+                  onPreviewToggle={setShowPreview}
+                  showPreview={showPreview}
+                  onContentChange={setPromptContent}
+                  onSnippetsChange={setSnippets}
+                />
+              </ResizablePanel>
+              
+              <ResizableHandle withHandle />
+              
+              {/* Preview Panel */}
+              <ResizablePanel defaultSize={40} minSize={20}>
+                <LivePreview
+                  content={promptContent}
+                  variables={variables}
+                  variableValues={variableValues}
+                  isVisible={showPreview}
+                />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          ) : (
+            <div className="flex-1 overflow-hidden">
+              <PromptEditor
+                onVariablesChange={handleVariablesChange}
+                onPreviewToggle={setShowPreview}
+                showPreview={showPreview}
+                onContentChange={setPromptContent}
+                onSnippetsChange={setSnippets}
               />
             </div>
           )}
-        </div>
+          </ResizablePanel>
 
-        {/* Right Panel - Variables */}
-        <div className="w-80 border-l border-border">
-          <VariablePanel
-            variables={variables}
-            onVariableChange={handleVariableChange}
-          />
-        </div>
+          <ResizableHandle withHandle />
+
+          {/* Right Panel - Variables */}
+          <ResizablePanel 
+            defaultSize={20} 
+            minSize={15} 
+            maxSize={30}
+            className="border-l border-border overflow-hidden"
+          >
+            <VariablePanel
+              variables={variables}
+              onVariableChange={handleVariableChange}
+              snippets={snippets}
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
 
       {/* Command Palette */}

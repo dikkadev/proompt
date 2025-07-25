@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Play, Copy, Save, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useCreatePrompt, useUpdatePrompt } from "@/lib/queries";
 
 interface Variable {
   name: string;
@@ -17,11 +19,17 @@ interface PromptEditorProps {
   onVariablesChange: (variables: Variable[]) => void;
   onPreviewToggle: (show: boolean) => void;
   showPreview: boolean;
+  onContentChange: (content: string) => void;
+  onSnippetsChange: (snippets: string[]) => void;
+  promptId?: string; // For editing existing prompts
+  initialTitle?: string;
+  initialContent?: string;
 }
 
-export function PromptEditor({ onVariablesChange, onPreviewToggle, showPreview }: PromptEditorProps) {
+export function PromptEditor({ onVariablesChange, onPreviewToggle, showPreview, onContentChange, onSnippetsChange, promptId, initialTitle, initialContent }: PromptEditorProps) {
+  const [title, setTitle] = useState(initialTitle || "Untitled Prompt");
   const [content, setContent] = useState(
-    `# Example Prompt Template
+    initialContent || `# Example Prompt Template
 
 Please analyze this {{document_type:document}} and provide insights about {{topic}}.
 
@@ -39,8 +47,12 @@ Please format your response as:
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [variables, setVariables] = useState<Variable[]>([]);
   const [snippets, setSnippets] = useState<string[]>([]);
+  
+  // Mutations for saving prompts
+  const createPromptMutation = useCreatePrompt();
+  const updatePromptMutation = useUpdatePrompt();
 
-  // Parse variables from content
+  // Parse variables from content and notify parent
   useEffect(() => {
     const variableRegex = /\{\{([^}]+)\}\}/g;
     const found: Variable[] = [];
@@ -76,13 +88,51 @@ Please format your response as:
     setVariables(found);
     setSnippets(foundSnippets);
     onVariablesChange(found);
-  }, [content, onVariablesChange]);
+    onContentChange(content);
+    onSnippetsChange(foundSnippets);
+  }, [content, onVariablesChange, onContentChange, onSnippetsChange]);
 
-  const handleSave = () => {
-    toast({
-      title: "Prompt saved",
-      description: "Your prompt template has been saved successfully.",
-    });
+  const handleSave = async () => {
+    if (!title.trim()) {
+      toast({
+        title: "Title required",
+        description: "Please enter a title for your prompt.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!content.trim()) {
+      toast({
+        title: "Content required", 
+        description: "Please enter some content for your prompt.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (promptId) {
+        // Update existing prompt
+        await updatePromptMutation.mutateAsync({
+          id: promptId,
+          title: title.trim(),
+          content: content.trim(),
+          type: 'user' as const, // Default to user type
+        });
+      } else {
+        // Create new prompt
+        await createPromptMutation.mutateAsync({
+          title: title.trim(),
+          content: content.trim(),
+          type: 'user' as const, // Default to user type
+          model_compatibility_tags: [],
+        });
+      }
+    } catch (error) {
+      // Error handling is done in the mutation's onError callback
+      console.error('Save failed:', error);
+    }
   };
 
   const handleCopy = () => {
@@ -122,48 +172,91 @@ Please format your response as:
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-card">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold">Prompt Editor</h2>
-          <div className="flex gap-1">
-            {variables.map((variable) => (
-              <Badge 
-                key={variable.name} 
-                variant="outline"
-                className={`text-xs ${
-                  variable.state === 'provided' ? 'border-variable-provided text-variable-provided' :
-                  variable.state === 'default' ? 'border-variable-default text-variable-default' :
-                  'border-variable-missing text-variable-missing'
-                }`}
-              >
-                {variable.name}
-              </Badge>
-            ))}
+      <div className="px-4 py-2 border-b border-border bg-card">
+        {/* Mobile/Narrow: Two rows */}
+        <div className="lg:hidden">
+          {/* Title Row */}
+          <div className="flex items-center gap-2 flex-1 min-w-0 mb-2">
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter prompt title..."
+              className="font-semibold text-lg bg-transparent border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-1 h-auto py-0 flex-1 min-w-0 hover:bg-muted/20 focus:bg-muted/30 rounded transition-colors"
+            />
+          </div>
+          
+          {/* Buttons Row */}
+          <div className="flex items-center justify-end gap-2 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onPreviewToggle(!showPreview)}
+              className="gap-2"
+            >
+              {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPreview ? 'Hide Preview' : 'Show Preview'}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleCopy} className="gap-2">
+              <Copy className="h-4 w-4" />
+              Copy
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleSave} 
+              className="gap-2"
+              disabled={createPromptMutation.isPending || updatePromptMutation.isPending}
+            >
+              <Save className="h-4 w-4" />
+              {promptId ? 'Update' : 'Save'}
+            </Button>
+            <Button onClick={handleRun} size="sm" className="gap-2 bg-primary hover:bg-primary-hover">
+              <Play className="h-4 w-4" />
+              Run
+            </Button>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onPreviewToggle(!showPreview)}
-            className="gap-2"
-          >
-            {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            {showPreview ? 'Hide Preview' : 'Show Preview'}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleCopy} className="gap-2">
-            <Copy className="h-4 w-4" />
-            Copy
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleSave} className="gap-2">
-            <Save className="h-4 w-4" />
-            Save
-          </Button>
-          <Button onClick={handleRun} size="sm" className="gap-2 bg-primary hover:bg-primary-hover">
-            <Play className="h-4 w-4" />
-            Run
-          </Button>
+        {/* Desktop/Wide: Single row */}
+        <div className="hidden lg:flex lg:items-center lg:justify-between">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter prompt title..."
+              className="font-semibold text-lg bg-transparent border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-1 h-auto py-0 flex-1 min-w-0 hover:bg-muted/20 focus:bg-muted/30 rounded transition-colors"
+            />
+          </div>
+          
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onPreviewToggle(!showPreview)}
+              className="gap-2"
+            >
+              {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPreview ? 'Hide Preview' : 'Show Preview'}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleCopy} className="gap-2">
+              <Copy className="h-4 w-4" />
+              Copy
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleSave} 
+              className="gap-2"
+              disabled={createPromptMutation.isPending || updatePromptMutation.isPending}
+            >
+              <Save className="h-4 w-4" />
+              {promptId ? 'Update' : 'Save'}
+            </Button>
+            <Button onClick={handleRun} size="sm" className="gap-2 bg-primary hover:bg-primary-hover">
+              <Play className="h-4 w-4" />
+              Run
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -181,27 +274,7 @@ Please format your response as:
         </Card>
       </div>
 
-      {/* Quick snippet insertion */}
-      {snippets.length > 0 && (
-        <div className="p-4 border-t border-border bg-muted/50">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            Referenced snippets:
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {snippets.map((snippet) => (
-              <Button
-                key={snippet}
-                variant="secondary"
-                size="sm"
-                onClick={() => insertSnippet(snippet)}
-                className="text-xs h-6 px-2"
-              >
-                @{snippet}
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

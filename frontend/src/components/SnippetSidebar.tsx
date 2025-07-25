@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useSnippets } from "@/lib/queries";
 import { 
   FileText, 
   Search, 
@@ -23,12 +24,12 @@ import {
 
 interface Snippet {
   id: string;
-  name: string;
+  title: string;
   content: string;
   description?: string;
-  tags: string[];
-  category: string;
-  isFavorite?: boolean;
+  created_at: string;
+  updated_at: string;
+  git_ref?: string;
 }
 
 interface SnippetSidebarProps {
@@ -39,6 +40,7 @@ interface SnippetSidebarProps {
 
 type ViewMode = 'categories' | 'tags';
 
+// Mock snippets removed - now using real API data
 const mockSnippets: Snippet[] = [
   {
     id: '1',
@@ -233,34 +235,22 @@ export function SnippetSidebar({ onSnippetInsert, isCollapsed, onToggleCollapse 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('categories');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['Favorites']));
-  const [snippets] = useState<Snippet[]>(mockSnippets);
+  // Fetch snippets from API
+  const { data: snippetsData, isLoading, isError } = useSnippets();
+  const snippets = snippetsData?.items || [];
 
-  // Get all unique tags from snippets, sorted by count (most used first)
-  const allTags = Array.from(new Set(snippets.flatMap(s => s.tags)))
-    .map(tag => ({
-      tag,
-      count: snippets.filter(s => s.tags.includes(tag)).length
-    }))
-    .sort((a, b) => b.count - a.count)
-    .map(item => item.tag);
-  
-  // Get tag counts
-  const tagCounts = allTags.reduce((acc, tag) => {
-    acc[tag] = snippets.filter(s => s.tags.includes(tag)).length;
-    return acc;
-  }, {} as Record<string, number>);
+  // For now, disable tag functionality since API snippets don't have tags
+  const allTags: string[] = [];
+  const tagCounts: Record<string, number> = {};
 
   const filteredSnippets = snippets.filter(snippet => {
-    const matchesSearch = snippet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = searchQuery === '' ||
+                         snippet.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          snippet.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         snippet.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+                         snippet.content.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCategory = selectedCategory === 'All' || snippet.category === selectedCategory;
-    
-    const matchesTags = selectedTags.length === 0 || 
-                       selectedTags.every(tag => snippet.tags.includes(tag));
-    
-    return matchesSearch && matchesCategory && matchesTags;
+    // For now, ignore category and tag filtering since API doesn't provide these
+    return matchesSearch;
   });
 
   const favoriteSnippets = filteredSnippets.filter(s => s.isFavorite);
@@ -321,7 +311,7 @@ export function SnippetSidebar({ onSnippetInsert, isCollapsed, onToggleCollapse 
 
   if (isCollapsed) {
     return (
-      <Card className="w-14 h-full flex flex-col items-center py-4 bg-workspace-sidebar">
+      <Card className="w-full h-full flex flex-col items-center py-4 bg-workspace-sidebar">
         <Button
           variant="ghost"
           size="sm"
@@ -338,9 +328,9 @@ export function SnippetSidebar({ onSnippetInsert, isCollapsed, onToggleCollapse 
               key={snippet.id}
               variant="ghost"
               size="sm"
-              onClick={() => onSnippetInsert(snippet.name)}
+              onClick={() => onSnippetInsert(snippet.title)}
               className="p-2 h-8 w-8"
-              title={snippet.name}
+              title={snippet.title}
             >
               <Star className="h-3 w-3 text-yellow-500" />
             </Button>
@@ -351,7 +341,7 @@ export function SnippetSidebar({ onSnippetInsert, isCollapsed, onToggleCollapse 
   }
 
   return (
-    <Card className="w-80 h-full flex flex-col bg-workspace-sidebar">
+    <Card className="w-full h-full flex flex-col bg-workspace-sidebar">
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-3">
@@ -494,6 +484,32 @@ export function SnippetSidebar({ onSnippetInsert, isCollapsed, onToggleCollapse 
       {/* Snippet List */}
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-4">
+          {/* Loading State */}
+          {isLoading && (
+            <div className="text-center py-8">
+              <div className="text-sm text-muted-foreground">Loading snippets...</div>
+            </div>
+          )}
+          
+          {/* Error State */}
+          {isError && (
+            <div className="text-center py-8">
+              <div className="text-sm text-red-600 mb-2">Failed to load snippets</div>
+              <div className="text-xs text-muted-foreground">Check your connection to the backend server</div>
+            </div>
+          )}
+          
+          {/* Empty State */}
+          {!isLoading && !isError && snippets.length === 0 && (
+            <div className="text-center py-8">
+              <FileText className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-50" />
+              <div className="text-sm text-muted-foreground">No snippets found</div>
+            </div>
+          )}
+          
+          {/* Content */}
+          {!isLoading && !isError && snippets.length > 0 && (
+            <>
           {/* Favorites */}
           {favoriteSnippets.length > 0 && (
             <Collapsible
@@ -633,6 +649,8 @@ export function SnippetSidebar({ onSnippetInsert, isCollapsed, onToggleCollapse 
               )}
             </div>
           )}
+          </>
+          )}
         </div>
       </ScrollArea>
     </Card>
@@ -657,13 +675,13 @@ function SnippetCard({
   return (
     <div
       className="group p-3 rounded-lg border border-border hover:border-primary/50 cursor-pointer transition-all hover:shadow-xs bg-card hover:bg-primary/5"
-      onClick={() => onInsert(snippet.name)}
+      onClick={() => onInsert(snippet.title)}
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <Icon className="h-3 w-3 text-muted-foreground shrink-0" />
           <span className="font-mono text-sm font-medium truncate">
-            @{snippet.name}
+            @{snippet.title}
           </span>
           {snippet.isFavorite && (
             <Star className="h-3 w-3 text-yellow-500 shrink-0" />
