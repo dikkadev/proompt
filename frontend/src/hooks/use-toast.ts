@@ -5,8 +5,8 @@ import type {
   ToastProps,
 } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_LIMIT = 5
+const TOAST_REMOVE_DELAY = 4000 // 4 seconds instead of 16+ minutes
 
 type ToasterToast = ToastProps & {
   id: string
@@ -63,7 +63,7 @@ const addToRemoveQueue = (toastId: string) => {
   const timeout = setTimeout(() => {
     toastTimeouts.delete(toastId)
     dispatch({
-      type: "REMOVE_TOAST",
+      type: "DISMISS_TOAST",
       toastId: toastId,
     })
   }, TOAST_REMOVE_DELAY)
@@ -71,12 +71,42 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout)
 }
 
+// Console logging function
+function logToastToConsole(toast: ToasterToast) {
+  const isError = toast.variant === "error"
+  const prefix = isError ? "[TOAST-ERROR]" : "[TOAST-INFO]"
+  const title = typeof toast.title === "string" ? toast.title : ""
+  const description = typeof toast.description === "string" ? toast.description : ""
+  
+  const message = [title, description].filter(Boolean).join(": ")
+  
+  if (isError) {
+    console.error(`${prefix} ${message}`)
+  } else {
+    console.info(`${prefix} ${message}`)
+  }
+}
+
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":
+      // Start auto-dismiss timer for the new toast
+      addToRemoveQueue(action.toast.id)
+      
+      // If we're at the limit, dismiss the oldest toast first
+      if (state.toasts.length >= TOAST_LIMIT) {
+        const oldestToast = state.toasts[0]
+        if (oldestToast) {
+          dispatch({
+            type: "DISMISS_TOAST",
+            toastId: oldestToast.id,
+          })
+        }
+      }
+      
       return {
         ...state,
-        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+        toasts: [...state.toasts, action.toast],
       }
 
     case "UPDATE_TOAST":
@@ -142,6 +172,11 @@ type Toast = Omit<ToasterToast, "id">
 function toast({ ...props }: Toast) {
   const id = genId()
 
+  // Already using error variant, no mapping needed
+  const mappedProps = {
+    ...props
+  }
+
   const update = (props: ToasterToast) =>
     dispatch({
       type: "UPDATE_TOAST",
@@ -149,17 +184,32 @@ function toast({ ...props }: Toast) {
     })
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
 
-  dispatch({
-    type: "ADD_TOAST",
-    toast: {
-      ...props,
-      id,
-      open: true,
-      onOpenChange: (open) => {
-        if (!open) dismiss()
-      },
+  const toastData = {
+    ...mappedProps,
+    id,
+    open: true,
+    onOpenChange: (open) => {
+      if (!open) dismiss()
     },
-  })
+  }
+
+  // Log to console
+  logToastToConsole(toastData)
+
+  // Use View Transition for smooth animations
+  if (document.startViewTransition) {
+    document.startViewTransition(() => {
+      dispatch({
+        type: "ADD_TOAST",
+        toast: toastData,
+      })
+    })
+  } else {
+    dispatch({
+      type: "ADD_TOAST",
+      toast: toastData,
+    })
+  }
 
   return {
     id: id,
@@ -184,7 +234,15 @@ function useToast() {
   return {
     ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    dismiss: (toastId?: string) => {
+      if (document.startViewTransition) {
+        document.startViewTransition(() => {
+          dispatch({ type: "DISMISS_TOAST", toastId })
+        })
+      } else {
+        dispatch({ type: "DISMISS_TOAST", toastId })
+      }
+    },
   }
 }
 

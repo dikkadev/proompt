@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Play, Copy, Save, Eye, EyeOff } from "lucide-react";
+import { Copy, Save, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useCreatePrompt, useUpdatePrompt } from "@/lib/queries";
 
@@ -153,12 +153,7 @@ Please format your response as:
     });
   };
 
-  const handleRun = () => {
-    toast({
-      title: "Processing prompt",
-      description: "Generating preview with current variables...",
-    });
-  };
+
 
   const insertSnippet = (snippetName: string) => {
     const textarea = textareaRef.current;
@@ -220,10 +215,6 @@ Please format your response as:
               <Save className="h-4 w-4" />
               {promptId ? 'Update' : 'Save'}
             </Button>
-            <Button onClick={handleRun} size="sm" className="gap-2 bg-primary hover:bg-primary-hover">
-              <Play className="h-4 w-4" />
-              Run
-            </Button>
           </div>
         </div>
         
@@ -261,10 +252,6 @@ Please format your response as:
             >
               <Save className="h-4 w-4" />
               {promptId ? 'Update' : 'Save'}
-            </Button>
-            <Button onClick={handleRun} size="sm" className="gap-2 bg-primary hover:bg-primary-hover">
-              <Play className="h-4 w-4" />
-              Run
             </Button>
           </div>
         </div>
