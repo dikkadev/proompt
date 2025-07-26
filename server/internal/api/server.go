@@ -10,6 +10,9 @@ import (
 	"github.com/dikkadev/proompt/server/internal/api/handlers"
 	"github.com/dikkadev/proompt/server/internal/config"
 	"github.com/dikkadev/proompt/server/internal/repository"
+
+	// Swagger documentation
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 // Server represents the HTTP server
@@ -22,6 +25,9 @@ type Server struct {
 // New creates a new HTTP server
 func New(cfg *config.Config, repo repository.Repository, logger *slog.Logger) *Server {
 	mux := http.NewServeMux()
+
+	// Swagger documentation endpoint
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	// Health endpoint
 	mux.HandleFunc("GET /api/health", handlers.Health)

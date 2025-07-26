@@ -1,0 +1,1454 @@
+basePath: /api
+definitions:
+  models.AddTagRequest:
+    properties:
+      tag_name:
+        type: string
+    required:
+    - tag_name
+    type: object
+  models.CreateNoteRequest:
+    properties:
+      body:
+        type: string
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+    required:
+    - body
+    - title
+    type: object
+  models.CreatePromptLinkRequest:
+    properties:
+      link_type:
+        type: string
+      to_prompt_id:
+        type: string
+    required:
+    - to_prompt_id
+    type: object
+  models.CreatePromptRequest:
+    properties:
+      content:
+        type: string
+      model_compatibility_tags:
+        items:
+          type: string
+        type: array
+      notes:
+        type: string
+      other_parameters:
+        additionalProperties: {}
+        type: object
+      temperature_suggestion:
+        maximum: 2
+        minimum: 0
+        type: number
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+      type:
+        enum:
+        - system
+        - user
+        - image
+        - video
+        type: string
+      use_case:
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - content
+    - title
+    - type
+    - use_case
+    type: object
+  models.CreateSnippetRequest:
+    properties:
+      content:
+        type: string
+      description:
+        type: string
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+    required:
+    - content
+    - title
+    type: object
+  models.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      details:
+        additionalProperties:
+          type: string
+        type: object
+      error:
+        type: string
+      message:
+        type: string
+    type: object
+  models.HealthResponse:
+    properties:
+      status:
+        type: string
+      timestamp:
+        type: string
+      version:
+        type: string
+    type: object
+  models.NoteListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.NoteResponse'
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  models.NoteResponse:
+    properties:
+      body:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      prompt_id:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.PromptLinkListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.PromptLinkResponse'
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  models.PromptLinkResponse:
+    properties:
+      created_at:
+        type: string
+      from_prompt_id:
+        type: string
+      link_type:
+        type: string
+      to_prompt_id:
+        type: string
+    type: object
+  models.PromptListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.PromptResponse'
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  models.PromptResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      git_ref:
+        type: string
+      id:
+        type: string
+      model_compatibility_tags:
+        items:
+          type: string
+        type: array
+      other_parameters:
+        additionalProperties: {}
+        type: object
+      temperature_suggestion:
+        type: number
+      title:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      use_case:
+        type: string
+    type: object
+  models.SnippetListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.SnippetResponse'
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  models.SnippetResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      git_ref:
+        type: string
+      id:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.TagListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.TagResponse'
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  models.TagResponse:
+    properties:
+      count:
+        type: integer
+      created_at:
+        type: string
+      name:
+        type: string
+    type: object
+  models.TemplatePreviewRequest:
+    properties:
+      content:
+        type: string
+      variables:
+        additionalProperties:
+          type: string
+        type: object
+    required:
+    - content
+    type: object
+  models.TemplatePreviewResponse:
+    properties:
+      resolved_content:
+        type: string
+      variables:
+        items:
+          $ref: '#/definitions/models.TemplateVariable'
+        type: array
+      warnings:
+        items:
+          type: string
+        type: array
+    type: object
+  models.TemplateVariable:
+    properties:
+      default_value:
+        type: string
+      has_default:
+        type: boolean
+      name:
+        type: string
+      status:
+        description: '"provided", "default", "missing"'
+        type: string
+    type: object
+  models.UpdateNoteRequest:
+    properties:
+      body:
+        minLength: 1
+        type: string
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+    type: object
+  models.UpdatePromptRequest:
+    properties:
+      content:
+        minLength: 1
+        type: string
+      model_compatibility_tags:
+        items:
+          type: string
+        type: array
+      notes:
+        type: string
+      other_parameters:
+        additionalProperties: {}
+        type: object
+      temperature_suggestion:
+        maximum: 2
+        minimum: 0
+        type: number
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+      type:
+        enum:
+        - system
+        - user
+        - image
+        - video
+        type: string
+      use_case:
+        maxLength: 100
+        minLength: 1
+        type: string
+    type: object
+  models.UpdateSnippetRequest:
+    properties:
+      content:
+        minLength: 1
+        type: string
+      description:
+        type: string
+      title:
+        maxLength: 255
+        minLength: 1
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@proompt.dev
+    name: Proompt API Support
+    url: https://github.com/dikkadev/proompt
+  description: |-
+    A comprehensive API for managing prompts, snippets, notes, and templates for AI interactions.
+
+    ## Features
+    - **Prompts**: Create, manage, and organize prompts for various AI models
+    - **Snippets**: Store and manage reusable code snippets and text blocks
+    - **Notes**: Add contextual notes to prompts for better organization
+    - **Templates**: Preview and analyze template content
+    - **Tagging**: Organize content with flexible tagging system
+    - **Linking**: Create relationships between prompts
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Proompt API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Returns the health status of the API server
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Health status
+          schema:
+            $ref: '#/definitions/models.HealthResponse'
+      summary: Health check endpoint
+      tags:
+      - health
+  /notes/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a note by its ID
+      parameters:
+      - description: Note ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Note successfully deleted
+        "400":
+          description: Invalid note ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Note not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete a note
+      tags:
+      - notes
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific note by its unique identifier
+      parameters:
+      - description: Note ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Note details
+          schema:
+            $ref: '#/definitions/models.NoteResponse'
+        "400":
+          description: Invalid note ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Note not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get a note by ID
+      tags:
+      - notes
+    put:
+      consumes:
+      - application/json
+      description: Update an existing note with new data
+      parameters:
+      - description: Note ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Note update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateNoteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated note
+          schema:
+            $ref: '#/definitions/models.NoteResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Note not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Update a note
+      tags:
+      - notes
+  /prompts:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of prompts with optional filtering
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: 'Items per page (default: 20, max: 100)'
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: Search term for title/content
+        in: query
+        name: search
+        type: string
+      - description: Filter by prompt type
+        enum:
+        - system
+        - user
+        - image
+        - video
+        in: query
+        name: type
+        type: string
+      - description: Filter by use case
+        in: query
+        name: use_case
+        type: string
+      - description: Filter by tags (comma-separated)
+        in: query
+        name: tags
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of prompts
+          schema:
+            $ref: '#/definitions/models.PromptListResponse'
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List prompts
+      tags:
+      - prompts
+    post:
+      consumes:
+      - application/json
+      description: Create a new prompt with the provided details
+      parameters:
+      - description: Prompt creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePromptRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created prompt
+          schema:
+            $ref: '#/definitions/models.PromptResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a new prompt
+      tags:
+      - prompts
+  /prompts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a prompt by its ID
+      parameters:
+      - description: Prompt ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Prompt successfully deleted
+        "400":
+          description: Invalid prompt ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Prompt not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete a prompt
+      tags:
+      - prompts
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific prompt by its unique identifier
+      parameters:
+      - description: Prompt ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Prompt details
+          schema:
+            $ref: '#/definitions/models.PromptResponse'
+        "400":
+          description: Invalid prompt ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Prompt not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get a prompt by ID
+      tags:
+      - prompts
+    put:
+      consumes:
+      - application/json
+      description: Update an existing prompt with new data
+      parameters:
+      - description: Prompt ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Prompt update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePromptRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated prompt
+          schema:
+            $ref: '#/definitions/models.PromptResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Prompt not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Update a prompt
+      tags:
+      - prompts
+  /prompts/{id}/backlinks:
+    get:
+      consumes:
+      - application/json
+      description: Get all prompts that link to this prompt (backlinks)
+      parameters:
+      - description: Prompt ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of incoming links
+          schema:
+            $ref: '#/definitions/models.PromptLinkListResponse'
+        "400":
+          description: Invalid prompt ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Prompt not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get incoming links to a prompt
+      tags:
+      - prompt-links
+  /prompts/{id}/links:
+    get:
+      consumes:
+      - application/json
+      description: Get all prompts that this prompt links to
+      parameters:
+      - description: Prompt ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of outgoing links
+          schema:
+            $ref: '#/definitions/models.PromptLinkListResponse'
+        "400":
+          description: Invalid prompt ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Prompt not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get outgoing links from a prompt
+      tags:
+      - prompt-links
+    post:
+      consumes:
+      - application/json
+      description: Create a relationship link from one prompt to another
+      parameters:
+      - description: Source Prompt ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Link creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePromptLinkRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created link
+          schema:
+            $ref: '#/definitions/models.PromptLinkResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Prompt not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Link already exists
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a link between prompts
+      tags:
+      - prompt-links
+  /prompts/{id}/links/{toId}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a relationship link between two prompts
+      parameters:
+      - description: Source Prompt ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Target Prompt ID
+        format: uuid
+        in: path
+        name: toId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Link successfully deleted
+        "400":
+          description: Invalid prompt IDs
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Link or prompt not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete a link between prompts
+      tags:
+      - prompt-links
+  /prompts/{id}/notes:
+    get:
+      consumes:
+      - application/json
+      description: Get all notes associated with a specific prompt
+      parameters:
+      - description: Prompt ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: 'Items per page (default: 20, max: 100)'
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of notes for the prompt
+          schema:
+            $ref: '#/definitions/models.NoteListResponse'
+        "400":
+          description: Invalid parameters
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Prompt not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List notes for a prompt
+      tags:
+      - notes
+    post:
+      consumes:
+      - application/json
+      description: Create a new note associated with a specific prompt
+      parameters:
+      - description: Prompt ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Note creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateNoteRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created note
+          schema:
+            $ref: '#/definitions/models.NoteResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Prompt not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a note for a prompt
+      tags:
+      - notes
+  /prompts/{id}/tags:
+    get:
+      consumes:
+      - application/json
+      description: Get all tags associated with a specific prompt
+      parameters:
+      - description: Prompt ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of prompt tags
+          schema:
+            $ref: '#/definitions/models.TagListResponse'
+        "400":
+          description: Invalid prompt ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Prompt not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get tags for a prompt
+      tags:
+      - prompt-tags
+    post:
+      consumes:
+      - application/json
+      description: Add a new tag to an existing prompt
+      parameters:
+      - description: Prompt ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddTagRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully added tag
+          schema:
+            $ref: '#/definitions/models.TagResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Prompt not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Tag already exists
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Add a tag to a prompt
+      tags:
+      - prompt-tags
+  /prompts/{id}/tags/{tagName}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove an existing tag from a prompt
+      parameters:
+      - description: Prompt ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag name to remove
+        in: path
+        name: tagName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Tag successfully removed
+        "400":
+          description: Invalid parameters
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Prompt or tag not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Remove a tag from a prompt
+      tags:
+      - prompt-tags
+  /prompts/tags:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all available prompt tags in the system
+      parameters:
+      - description: Search term for tag names
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of all prompt tags
+          schema:
+            $ref: '#/definitions/models.TagListResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List all prompt tags
+      tags:
+      - prompt-tags
+  /snippets:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of snippets with optional filtering
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: 'Items per page (default: 20, max: 100)'
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: Search term for title/content
+        in: query
+        name: search
+        type: string
+      - description: Filter by tags (comma-separated)
+        in: query
+        name: tags
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of snippets
+          schema:
+            $ref: '#/definitions/models.SnippetListResponse'
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List snippets
+      tags:
+      - snippets
+    post:
+      consumes:
+      - application/json
+      description: Create a new code snippet or text block
+      parameters:
+      - description: Snippet creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateSnippetRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created snippet
+          schema:
+            $ref: '#/definitions/models.SnippetResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a new snippet
+      tags:
+      - snippets
+  /snippets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a snippet by its ID
+      parameters:
+      - description: Snippet ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Snippet successfully deleted
+        "400":
+          description: Invalid snippet ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Snippet not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete a snippet
+      tags:
+      - snippets
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific snippet by its unique identifier
+      parameters:
+      - description: Snippet ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Snippet details
+          schema:
+            $ref: '#/definitions/models.SnippetResponse'
+        "400":
+          description: Invalid snippet ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Snippet not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get a snippet by ID
+      tags:
+      - snippets
+    put:
+      consumes:
+      - application/json
+      description: Update an existing snippet with new data
+      parameters:
+      - description: Snippet ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Snippet update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateSnippetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated snippet
+          schema:
+            $ref: '#/definitions/models.SnippetResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Snippet not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Update a snippet
+      tags:
+      - snippets
+  /snippets/{id}/tags:
+    get:
+      consumes:
+      - application/json
+      description: Get all tags associated with a specific snippet
+      parameters:
+      - description: Snippet ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of snippet tags
+          schema:
+            $ref: '#/definitions/models.TagListResponse'
+        "400":
+          description: Invalid snippet ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Snippet not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get tags for a snippet
+      tags:
+      - snippet-tags
+    post:
+      consumes:
+      - application/json
+      description: Add a new tag to an existing snippet
+      parameters:
+      - description: Snippet ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddTagRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully added tag
+          schema:
+            $ref: '#/definitions/models.TagResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Snippet not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Tag already exists
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Add a tag to a snippet
+      tags:
+      - snippet-tags
+  /snippets/{id}/tags/{tagName}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove an existing tag from a snippet
+      parameters:
+      - description: Snippet ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag name to remove
+        in: path
+        name: tagName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Tag successfully removed
+        "400":
+          description: Invalid parameters
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Snippet or tag not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Remove a tag from a snippet
+      tags:
+      - snippet-tags
+  /snippets/tags:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all available snippet tags in the system
+      parameters:
+      - description: Search term for tag names
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of all snippet tags
+          schema:
+            $ref: '#/definitions/models.TagListResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List all snippet tags
+      tags:
+      - snippet-tags
+  /template/analyze:
+    post:
+      consumes:
+      - application/json
+      description: Analyze a template to extract variables, functions, and structure
+        information
+      parameters:
+      - description: Template analysis data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.TemplatePreviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Template analysis result
+          schema:
+            $ref: '#/definitions/models.TemplatePreviewResponse'
+        "400":
+          description: Invalid request data or template syntax
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Analyze template structure
+      tags:
+      - templates
+  /template/preview:
+    post:
+      consumes:
+      - application/json
+      description: Preview how a template will render with provided data
+      parameters:
+      - description: Template preview data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.TemplatePreviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Template preview result
+          schema:
+            $ref: '#/definitions/models.TemplatePreviewResponse'
+        "400":
+          description: Invalid request data or template syntax
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Preview template rendering
+      tags:
+      - templates
+schemes:
+- http
+- https
+securityDefinitions:
+  ApiKeyAuth:
+    description: API key for authentication (if implemented)
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
+tags:
+- description: Health check endpoints
+  name: health
+- description: Operations on prompts
+  name: prompts
+- description: Manage relationships between prompts
+  name: prompt-links
+- description: Manage tags for prompts
+  name: prompt-tags
+- description: Operations on code snippets and text blocks
+  name: snippets
+- description: Manage tags for snippets
+  name: snippet-tags
+- description: Manage notes associated with prompts
+  name: notes
+- description: Template analysis and preview operations
+  name: templates

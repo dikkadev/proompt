@@ -124,3 +124,8 @@ type CreatePromptLinkRequest struct {
 type AddTagRequest struct {
 	TagName string `json:"tag_name" validate:"required"`
 }
+
+// AnalyzeTemplateRequest represents the request body for template analysis
+type AnalyzeTemplateRequest struct {
+	Template string `json:"template" validate:"required"`
+}

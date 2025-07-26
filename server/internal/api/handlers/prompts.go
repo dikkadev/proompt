@@ -27,7 +27,17 @@ func NewPromptHandlers(repo repository.Repository) *PromptHandlers {
 	}
 }
 
-// CreatePrompt handles POST /api/prompts
+// CreatePrompt godoc
+// @Summary Create a new prompt
+// @Description Create a new prompt with the provided details
+// @Tags prompts
+// @Accept json
+// @Produce json
+// @Param request body models.CreatePromptRequest true "Prompt creation data"
+// @Success 201 {object} models.PromptResponse "Successfully created prompt"
+// @Failure 400 {object} models.ErrorResponse "Invalid request data"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts [post]
 func (h *PromptHandlers) CreatePrompt(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("CreatePrompt handler started")
 
@@ -83,7 +93,18 @@ func (h *PromptHandlers) CreatePrompt(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("CreatePrompt handler completed successfully", "prompt_id", prompt.ID)
 }
 
-// GetPrompt handles GET /api/prompts/{id}
+// GetPrompt godoc
+// @Summary Get a prompt by ID
+// @Description Retrieve a specific prompt by its unique identifier
+// @Tags prompts
+// @Accept json
+// @Produce json
+// @Param id path string true "Prompt ID" format(uuid)
+// @Success 200 {object} models.PromptResponse "Prompt details"
+// @Failure 400 {object} models.ErrorResponse "Invalid prompt ID"
+// @Failure 404 {object} models.ErrorResponse "Prompt not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/{id} [get]
 func (h *PromptHandlers) GetPrompt(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	h.logger.Debug("GetPrompt handler started", "prompt_id", id)
@@ -112,7 +133,19 @@ func (h *PromptHandlers) GetPrompt(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("GetPrompt handler completed successfully", "prompt_id", id)
 }
 
-// UpdatePrompt handles PUT /api/prompts/{id}
+// UpdatePrompt godoc
+// @Summary Update a prompt
+// @Description Update an existing prompt with new data
+// @Tags prompts
+// @Accept json
+// @Produce json
+// @Param id path string true "Prompt ID" format(uuid)
+// @Param request body models.UpdatePromptRequest true "Prompt update data"
+// @Success 200 {object} models.PromptResponse "Updated prompt"
+// @Failure 400 {object} models.ErrorResponse "Invalid request data"
+// @Failure 404 {object} models.ErrorResponse "Prompt not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/{id} [put]
 func (h *PromptHandlers) UpdatePrompt(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	h.logger.Debug("UpdatePrompt handler started", "prompt_id", id)
@@ -203,7 +236,18 @@ func (h *PromptHandlers) UpdatePrompt(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("UpdatePrompt handler completed successfully", "prompt_id", id)
 }
 
-// DeletePrompt handles DELETE /api/prompts/{id}
+// DeletePrompt godoc
+// @Summary Delete a prompt
+// @Description Delete a prompt by its ID
+// @Tags prompts
+// @Accept json
+// @Produce json
+// @Param id path string true "Prompt ID" format(uuid)
+// @Success 204 "Prompt successfully deleted"
+// @Failure 400 {object} models.ErrorResponse "Invalid prompt ID"
+// @Failure 404 {object} models.ErrorResponse "Prompt not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/{id} [delete]
 func (h *PromptHandlers) DeletePrompt(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
@@ -219,7 +263,22 @@ func (h *PromptHandlers) DeletePrompt(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// ListPrompts handles GET /api/prompts
+// ListPrompts godoc
+// @Summary List prompts
+// @Description Get a paginated list of prompts with optional filtering
+// @Tags prompts
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number (default: 1)" minimum(1)
+// @Param limit query int false "Items per page (default: 20, max: 100)" minimum(1) maximum(100)
+// @Param search query string false "Search term for title/content"
+// @Param type query string false "Filter by prompt type" Enums(system,user,image,video)
+// @Param use_case query string false "Filter by use case"
+// @Param tags query string false "Filter by tags (comma-separated)"
+// @Success 200 {object} models.PromptListResponse "List of prompts"
+// @Failure 400 {object} models.ErrorResponse "Invalid query parameters"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts [get]
 func (h *PromptHandlers) ListPrompts(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("ListPrompts handler started")
 
@@ -282,7 +341,20 @@ func (h *PromptHandlers) ListPrompts(w http.ResponseWriter, r *http.Request) {
 		"returned_count", len(responses))
 }
 
-// CreatePromptLink handles POST /api/prompts/{id}/links
+// CreatePromptLink godoc
+// @Summary Create a link between prompts
+// @Description Create a relationship link from one prompt to another
+// @Tags prompt-links
+// @Accept json
+// @Produce json
+// @Param id path string true "Source Prompt ID" format(uuid)
+// @Param request body models.CreatePromptLinkRequest true "Link creation data"
+// @Success 201 {object} models.PromptLinkResponse "Successfully created link"
+// @Failure 400 {object} models.ErrorResponse "Invalid request data"
+// @Failure 404 {object} models.ErrorResponse "Prompt not found"
+// @Failure 409 {object} models.ErrorResponse "Link already exists"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/{id}/links [post]
 func (h *PromptHandlers) CreatePromptLink(w http.ResponseWriter, r *http.Request) {
 	fromPromptID := r.PathValue("id")
 	if fromPromptID == "" {
@@ -337,7 +409,20 @@ func (h *PromptHandlers) CreatePromptLink(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(models.FromPromptLink(link))
 }
 
-// AddPromptTag handles POST /api/prompts/{id}/tags
+// AddPromptTag godoc
+// @Summary Add a tag to a prompt
+// @Description Add a new tag to an existing prompt
+// @Tags prompt-tags
+// @Accept json
+// @Produce json
+// @Param id path string true "Prompt ID" format(uuid)
+// @Param request body models.AddTagRequest true "Tag data"
+// @Success 201 {object} models.TagResponse "Successfully added tag"
+// @Failure 400 {object} models.ErrorResponse "Invalid request data"
+// @Failure 404 {object} models.ErrorResponse "Prompt not found"
+// @Failure 409 {object} models.ErrorResponse "Tag already exists"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/{id}/tags [post]
 func (h *PromptHandlers) AddPromptTag(w http.ResponseWriter, r *http.Request) {
 	promptID := r.PathValue("id")
 	if promptID == "" {
@@ -372,7 +457,19 @@ func (h *PromptHandlers) AddPromptTag(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// RemovePromptTag handles DELETE /api/prompts/{id}/tags/{tagName}
+// RemovePromptTag godoc
+// @Summary Remove a tag from a prompt
+// @Description Remove an existing tag from a prompt
+// @Tags prompt-tags
+// @Accept json
+// @Produce json
+// @Param id path string true "Prompt ID" format(uuid)
+// @Param tagName path string true "Tag name to remove"
+// @Success 204 "Tag successfully removed"
+// @Failure 400 {object} models.ErrorResponse "Invalid parameters"
+// @Failure 404 {object} models.ErrorResponse "Prompt or tag not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/{id}/tags/{tagName} [delete]
 func (h *PromptHandlers) RemovePromptTag(w http.ResponseWriter, r *http.Request) {
 	promptID := r.PathValue("id")
 	tagName := r.PathValue("tagName")
@@ -390,7 +487,18 @@ func (h *PromptHandlers) RemovePromptTag(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GetPromptTags handles GET /api/prompts/{id}/tags
+// GetPromptTags godoc
+// @Summary Get tags for a prompt
+// @Description Get all tags associated with a specific prompt
+// @Tags prompt-tags
+// @Accept json
+// @Produce json
+// @Param id path string true "Prompt ID" format(uuid)
+// @Success 200 {object} models.TagListResponse "List of prompt tags"
+// @Failure 400 {object} models.ErrorResponse "Invalid prompt ID"
+// @Failure 404 {object} models.ErrorResponse "Prompt not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/{id}/tags [get]
 func (h *PromptHandlers) GetPromptTags(w http.ResponseWriter, r *http.Request) {
 	promptID := r.PathValue("id")
 	if promptID == "" {
@@ -408,7 +516,16 @@ func (h *PromptHandlers) GetPromptTags(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string][]string{"tags": tags})
 }
 
-// ListAllPromptTags handles GET /api/prompts/tags
+// ListAllPromptTags godoc
+// @Summary List all prompt tags
+// @Description Get a list of all available prompt tags in the system
+// @Tags prompt-tags
+// @Accept json
+// @Produce json
+// @Param search query string false "Search term for tag names"
+// @Success 200 {object} models.TagListResponse "List of all prompt tags"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/tags [get]
 func (h *PromptHandlers) ListAllPromptTags(w http.ResponseWriter, r *http.Request) {
 	tags, err := h.repo.Prompts().ListAllTags(r.Context())
 	if err != nil {
@@ -420,7 +537,19 @@ func (h *PromptHandlers) ListAllPromptTags(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(map[string][]string{"tags": tags})
 }
 
-// DeletePromptLink handles DELETE /api/prompts/{id}/links/{toId}
+// DeletePromptLink godoc
+// @Summary Delete a link between prompts
+// @Description Remove a relationship link between two prompts
+// @Tags prompt-links
+// @Accept json
+// @Produce json
+// @Param id path string true "Source Prompt ID" format(uuid)
+// @Param toId path string true "Target Prompt ID" format(uuid)
+// @Success 204 "Link successfully deleted"
+// @Failure 400 {object} models.ErrorResponse "Invalid prompt IDs"
+// @Failure 404 {object} models.ErrorResponse "Link or prompt not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/{id}/links/{toId} [delete]
 func (h *PromptHandlers) DeletePromptLink(w http.ResponseWriter, r *http.Request) {
 	fromPromptID := r.PathValue("id")
 	toPromptID := r.PathValue("toId")
@@ -438,7 +567,18 @@ func (h *PromptHandlers) DeletePromptLink(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GetPromptLinksFrom handles GET /api/prompts/{id}/links
+// GetPromptLinksFrom godoc
+// @Summary Get outgoing links from a prompt
+// @Description Get all prompts that this prompt links to
+// @Tags prompt-links
+// @Accept json
+// @Produce json
+// @Param id path string true "Prompt ID" format(uuid)
+// @Success 200 {object} models.PromptLinkListResponse "List of outgoing links"
+// @Failure 400 {object} models.ErrorResponse "Invalid prompt ID"
+// @Failure 404 {object} models.ErrorResponse "Prompt not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/{id}/links [get]
 func (h *PromptHandlers) GetPromptLinksFrom(w http.ResponseWriter, r *http.Request) {
 	promptID := r.PathValue("id")
 	if promptID == "" {
@@ -456,7 +596,18 @@ func (h *PromptHandlers) GetPromptLinksFrom(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(models.FromPromptLinks(links))
 }
 
-// GetPromptLinksTo handles GET /api/prompts/{id}/backlinks
+// GetPromptLinksTo godoc
+// @Summary Get incoming links to a prompt
+// @Description Get all prompts that link to this prompt (backlinks)
+// @Tags prompt-links
+// @Accept json
+// @Produce json
+// @Param id path string true "Prompt ID" format(uuid)
+// @Success 200 {object} models.PromptLinkListResponse "List of incoming links"
+// @Failure 400 {object} models.ErrorResponse "Invalid prompt ID"
+// @Failure 404 {object} models.ErrorResponse "Prompt not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/{id}/backlinks [get]
 func (h *PromptHandlers) GetPromptLinksTo(w http.ResponseWriter, r *http.Request) {
 	promptID := r.PathValue("id")
 	if promptID == "" {

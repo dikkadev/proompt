@@ -8,7 +8,14 @@ import (
 	"github.com/dikkadev/proompt/server/internal/api/models"
 )
 
-// Health handles the health check endpoint
+// Health godoc
+// @Summary Health check endpoint
+// @Description Returns the health status of the API server
+// @Tags health
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.HealthResponse "Health status"
+// @Router /health [get]
 func Health(w http.ResponseWriter, r *http.Request) {
 	response := models.HealthResponse{
 		Status:    "healthy",

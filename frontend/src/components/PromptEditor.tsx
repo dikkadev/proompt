@@ -183,6 +183,7 @@ Please format your response as:
           {/* Title Row */}
           <div className="flex items-center gap-2 flex-1 min-w-0 mb-2">
             <Input
+              style={{viewTransitionName: 'prompt-title'}}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter prompt title..."
@@ -222,6 +223,7 @@ Please format your response as:
         <div className="hidden lg:flex lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <Input
+              style={{viewTransitionName: 'prompt-title'}}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter prompt title..."

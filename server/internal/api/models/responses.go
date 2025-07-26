@@ -178,3 +178,58 @@ func FromPromptLinks(links []*models.PromptLink) []*PromptLinkResponse {
 	}
 	return responses
 }
+
+// TagResponse represents a tag in API responses
+type TagResponse struct {
+	Name      string    `json:"name"`
+	Count     int       `json:"count"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// Non-generic list response types for Swagger documentation
+// (older swagger generators don't support Go generics)
+
+// PromptListResponse represents a list of prompts
+type PromptListResponse struct {
+	Data       []PromptResponse `json:"data"`
+	Total      int              `json:"total"`
+	Page       int              `json:"page"`
+	PageSize   int              `json:"page_size"`
+	TotalPages int              `json:"total_pages"`
+}
+
+// SnippetListResponse represents a list of snippets
+type SnippetListResponse struct {
+	Data       []SnippetResponse `json:"data"`
+	Total      int               `json:"total"`
+	Page       int               `json:"page"`
+	PageSize   int               `json:"page_size"`
+	TotalPages int               `json:"total_pages"`
+}
+
+// NoteListResponse represents a list of notes
+type NoteListResponse struct {
+	Data       []NoteResponse `json:"data"`
+	Total      int            `json:"total"`
+	Page       int            `json:"page"`
+	PageSize   int            `json:"page_size"`
+	TotalPages int            `json:"total_pages"`
+}
+
+// TagListResponse represents a list of tags
+type TagListResponse struct {
+	Data       []TagResponse `json:"data"`
+	Total      int           `json:"total"`
+	Page       int           `json:"page"`
+	PageSize   int           `json:"page_size"`
+	TotalPages int           `json:"total_pages"`
+}
+
+// PromptLinkListResponse represents a list of prompt links
+type PromptLinkListResponse struct {
+	Data       []PromptLinkResponse `json:"data"`
+	Total      int                  `json:"total"`
+	Page       int                  `json:"page"`
+	PageSize   int                  `json:"page_size"`
+	TotalPages int                  `json:"total_pages"`
+}

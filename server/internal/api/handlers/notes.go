@@ -19,7 +19,19 @@ func NewNoteHandlers(repo repository.Repository) *NoteHandlers {
 	return &NoteHandlers{repo: repo}
 }
 
-// CreateNote handles POST /api/prompts/{id}/notes
+// CreateNote godoc
+// @Summary Create a note for a prompt
+// @Description Create a new note associated with a specific prompt
+// @Tags notes
+// @Accept json
+// @Produce json
+// @Param id path string true "Prompt ID" format(uuid)
+// @Param request body models.CreateNoteRequest true "Note creation data"
+// @Success 201 {object} models.NoteResponse "Successfully created note"
+// @Failure 400 {object} models.ErrorResponse "Invalid request data"
+// @Failure 404 {object} models.ErrorResponse "Prompt not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/{id}/notes [post]
 func (h *NoteHandlers) CreateNote(w http.ResponseWriter, r *http.Request) {
 	promptID := r.PathValue("id")
 	if promptID == "" {
@@ -66,7 +78,18 @@ func (h *NoteHandlers) CreateNote(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// GetNote handles GET /api/notes/{id}
+// GetNote godoc
+// @Summary Get a note by ID
+// @Description Retrieve a specific note by its unique identifier
+// @Tags notes
+// @Accept json
+// @Produce json
+// @Param id path string true "Note ID" format(uuid)
+// @Success 200 {object} models.NoteResponse "Note details"
+// @Failure 400 {object} models.ErrorResponse "Invalid note ID"
+// @Failure 404 {object} models.ErrorResponse "Note not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /notes/{id} [get]
 func (h *NoteHandlers) GetNote(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
@@ -84,7 +107,19 @@ func (h *NoteHandlers) GetNote(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// UpdateNote handles PUT /api/notes/{id}
+// UpdateNote godoc
+// @Summary Update a note
+// @Description Update an existing note with new data
+// @Tags notes
+// @Accept json
+// @Produce json
+// @Param id path string true "Note ID" format(uuid)
+// @Param request body models.UpdateNoteRequest true "Note update data"
+// @Success 200 {object} models.NoteResponse "Updated note"
+// @Failure 400 {object} models.ErrorResponse "Invalid request data"
+// @Failure 404 {object} models.ErrorResponse "Note not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /notes/{id} [put]
 func (h *NoteHandlers) UpdateNote(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
@@ -124,7 +159,18 @@ func (h *NoteHandlers) UpdateNote(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// DeleteNote handles DELETE /api/notes/{id}
+// DeleteNote godoc
+// @Summary Delete a note
+// @Description Delete a note by its ID
+// @Tags notes
+// @Accept json
+// @Produce json
+// @Param id path string true "Note ID" format(uuid)
+// @Success 204 "Note successfully deleted"
+// @Failure 400 {object} models.ErrorResponse "Invalid note ID"
+// @Failure 404 {object} models.ErrorResponse "Note not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /notes/{id} [delete]
 func (h *NoteHandlers) DeleteNote(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
@@ -140,7 +186,20 @@ func (h *NoteHandlers) DeleteNote(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// ListNotesForPrompt handles GET /api/prompts/{id}/notes
+// ListNotesForPrompt godoc
+// @Summary List notes for a prompt
+// @Description Get all notes associated with a specific prompt
+// @Tags notes
+// @Accept json
+// @Produce json
+// @Param id path string true "Prompt ID" format(uuid)
+// @Param page query int false "Page number (default: 1)" minimum(1)
+// @Param limit query int false "Items per page (default: 20, max: 100)" minimum(1) maximum(100)
+// @Success 200 {object} models.NoteListResponse "List of notes for the prompt"
+// @Failure 400 {object} models.ErrorResponse "Invalid parameters"
+// @Failure 404 {object} models.ErrorResponse "Prompt not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /prompts/{id}/notes [get]
 func (h *NoteHandlers) ListNotesForPrompt(w http.ResponseWriter, r *http.Request) {
 	promptID := r.PathValue("id")
 	if promptID == "" {

@@ -1,3 +1,56 @@
+// Package main provides the entry point for the Proompt server application.
+//
+// @title Proompt API
+// @version 1.0
+// @description A comprehensive API for managing prompts, snippets, notes, and templates for AI interactions.
+// @description
+// @description ## Features
+// @description - **Prompts**: Create, manage, and organize prompts for various AI models
+// @description - **Snippets**: Store and manage reusable code snippets and text blocks
+// @description - **Notes**: Add contextual notes to prompts for better organization
+// @description - **Templates**: Preview and analyze template content
+// @description - **Tagging**: Organize content with flexible tagging system
+// @description - **Linking**: Create relationships between prompts
+//
+// @contact.name Proompt API Support
+// @contact.url https://github.com/dikkadev/proompt
+// @contact.email support@proompt.dev
+//
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+//
+// @host localhost:8080
+// @BasePath /api
+// @schemes http https
+//
+// @tag.name health
+// @tag.description Health check endpoints
+//
+// @tag.name prompts
+// @tag.description Operations on prompts
+//
+// @tag.name prompt-links
+// @tag.description Manage relationships between prompts
+//
+// @tag.name prompt-tags
+// @tag.description Manage tags for prompts
+//
+// @tag.name snippets
+// @tag.description Operations on code snippets and text blocks
+//
+// @tag.name snippet-tags
+// @tag.description Manage tags for snippets
+//
+// @tag.name notes
+// @tag.description Manage notes associated with prompts
+//
+// @tag.name templates
+// @tag.description Template analysis and preview operations
+//
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+// @description API key for authentication (if implemented)
 package main
 
 import (
@@ -16,6 +69,9 @@ import (
 	"github.com/dikkadev/proompt/server/internal/git"
 	"github.com/dikkadev/proompt/server/internal/logging"
 	"github.com/dikkadev/proompt/server/internal/repository"
+
+	// Import for swagger docs generation
+	_ "github.com/dikkadev/proompt/server/docs"
 )
 
 // determineEnvironment determines the environment from CLI flag or env var

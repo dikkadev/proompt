@@ -1,5 +1,5 @@
 # Proompt Project Makefile
-.PHONY: help build test test-integration test-smoke clean docker-build docker-test docker-clean
+.PHONY: help build test test-integration test-smoke clean docker-build docker-test docker-clean docs swagger
 
 # Default target
 help:
@@ -14,6 +14,9 @@ help:
 	@echo "  docker-build       Build Docker image"
 	@echo "  docker-test        Run containerized integration tests"
 	@echo "  docker-clean       Clean Docker resources"
+	@echo ""
+	@echo "  docs               Generate Swagger/OpenAPI documentation"
+	@echo "  swagger            Alias for docs command"
 	@echo ""
 
 # Build the server binary
@@ -67,3 +70,11 @@ docker-test: docker-build
 docker-clean:
 	@echo "Cleaning Docker resources..."
 	cd tests && ./scripts/cleanup.sh -a
+
+# Generate Swagger/OpenAPI documentation
+docs:
+	@echo "Generating Swagger/OpenAPI documentation..."
+	cd server && $(MAKE) docs
+
+# Alias for docs
+swagger: docs

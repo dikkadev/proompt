@@ -26,7 +26,17 @@ func NewSnippetHandlers(repo repository.Repository) *SnippetHandlers {
 	}
 }
 
-// CreateSnippet handles POST /api/snippets
+// CreateSnippet godoc
+// @Summary Create a new snippet
+// @Description Create a new code snippet or text block
+// @Tags snippets
+// @Accept json
+// @Produce json
+// @Param request body models.CreateSnippetRequest true "Snippet creation data"
+// @Success 201 {object} models.SnippetResponse "Successfully created snippet"
+// @Failure 400 {object} models.ErrorResponse "Invalid request data"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /snippets [post]
 func (h *SnippetHandlers) CreateSnippet(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debug("CreateSnippet handler started")
 
@@ -78,7 +88,18 @@ func (h *SnippetHandlers) CreateSnippet(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(response)
 }
 
-// GetSnippet handles GET /api/snippets/{id}
+// GetSnippet godoc
+// @Summary Get a snippet by ID
+// @Description Retrieve a specific snippet by its unique identifier
+// @Tags snippets
+// @Accept json
+// @Produce json
+// @Param id path string true "Snippet ID" format(uuid)
+// @Success 200 {object} models.SnippetResponse "Snippet details"
+// @Failure 400 {object} models.ErrorResponse "Invalid snippet ID"
+// @Failure 404 {object} models.ErrorResponse "Snippet not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /snippets/{id} [get]
 func (h *SnippetHandlers) GetSnippet(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
@@ -96,7 +117,19 @@ func (h *SnippetHandlers) GetSnippet(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// UpdateSnippet handles PUT /api/snippets/{id}
+// UpdateSnippet godoc
+// @Summary Update a snippet
+// @Description Update an existing snippet with new data
+// @Tags snippets
+// @Accept json
+// @Produce json
+// @Param id path string true "Snippet ID" format(uuid)
+// @Param request body models.UpdateSnippetRequest true "Snippet update data"
+// @Success 200 {object} models.SnippetResponse "Updated snippet"
+// @Failure 400 {object} models.ErrorResponse "Invalid request data"
+// @Failure 404 {object} models.ErrorResponse "Snippet not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /snippets/{id} [put]
 func (h *SnippetHandlers) UpdateSnippet(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
@@ -139,7 +172,18 @@ func (h *SnippetHandlers) UpdateSnippet(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(response)
 }
 
-// DeleteSnippet handles DELETE /api/snippets/{id}
+// DeleteSnippet godoc
+// @Summary Delete a snippet
+// @Description Delete a snippet by its ID
+// @Tags snippets
+// @Accept json
+// @Produce json
+// @Param id path string true "Snippet ID" format(uuid)
+// @Success 204 "Snippet successfully deleted"
+// @Failure 400 {object} models.ErrorResponse "Invalid snippet ID"
+// @Failure 404 {object} models.ErrorResponse "Snippet not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /snippets/{id} [delete]
 func (h *SnippetHandlers) DeleteSnippet(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
@@ -155,7 +199,20 @@ func (h *SnippetHandlers) DeleteSnippet(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// ListSnippets handles GET /api/snippets
+// ListSnippets godoc
+// @Summary List snippets
+// @Description Get a paginated list of snippets with optional filtering
+// @Tags snippets
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number (default: 1)" minimum(1)
+// @Param limit query int false "Items per page (default: 20, max: 100)" minimum(1) maximum(100)
+// @Param search query string false "Search term for title/content"
+// @Param tags query string false "Filter by tags (comma-separated)"
+// @Success 200 {object} models.SnippetListResponse "List of snippets"
+// @Failure 400 {object} models.ErrorResponse "Invalid query parameters"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /snippets [get]
 func (h *SnippetHandlers) ListSnippets(w http.ResponseWriter, r *http.Request) {
 	// Parse query parameters
 	filters := repository.SnippetFilters{}
@@ -191,7 +248,20 @@ func (h *SnippetHandlers) ListSnippets(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(listResponse)
 }
 
-// AddSnippetTag handles POST /api/snippets/{id}/tags
+// AddSnippetTag godoc
+// @Summary Add a tag to a snippet
+// @Description Add a new tag to an existing snippet
+// @Tags snippet-tags
+// @Accept json
+// @Produce json
+// @Param id path string true "Snippet ID" format(uuid)
+// @Param request body models.AddTagRequest true "Tag data"
+// @Success 201 {object} models.TagResponse "Successfully added tag"
+// @Failure 400 {object} models.ErrorResponse "Invalid request data"
+// @Failure 404 {object} models.ErrorResponse "Snippet not found"
+// @Failure 409 {object} models.ErrorResponse "Tag already exists"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /snippets/{id}/tags [post]
 func (h *SnippetHandlers) AddSnippetTag(w http.ResponseWriter, r *http.Request) {
 	snippetID := r.PathValue("id")
 	if snippetID == "" {
@@ -226,7 +296,19 @@ func (h *SnippetHandlers) AddSnippetTag(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusCreated)
 }
 
-// RemoveSnippetTag handles DELETE /api/snippets/{id}/tags/{tagName}
+// RemoveSnippetTag godoc
+// @Summary Remove a tag from a snippet
+// @Description Remove an existing tag from a snippet
+// @Tags snippet-tags
+// @Accept json
+// @Produce json
+// @Param id path string true "Snippet ID" format(uuid)
+// @Param tagName path string true "Tag name to remove"
+// @Success 204 "Tag successfully removed"
+// @Failure 400 {object} models.ErrorResponse "Invalid parameters"
+// @Failure 404 {object} models.ErrorResponse "Snippet or tag not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /snippets/{id}/tags/{tagName} [delete]
 func (h *SnippetHandlers) RemoveSnippetTag(w http.ResponseWriter, r *http.Request) {
 	snippetID := r.PathValue("id")
 	tagName := r.PathValue("tagName")
@@ -244,7 +326,18 @@ func (h *SnippetHandlers) RemoveSnippetTag(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GetSnippetTags handles GET /api/snippets/{id}/tags
+// GetSnippetTags godoc
+// @Summary Get tags for a snippet
+// @Description Get all tags associated with a specific snippet
+// @Tags snippet-tags
+// @Accept json
+// @Produce json
+// @Param id path string true "Snippet ID" format(uuid)
+// @Success 200 {object} models.TagListResponse "List of snippet tags"
+// @Failure 400 {object} models.ErrorResponse "Invalid snippet ID"
+// @Failure 404 {object} models.ErrorResponse "Snippet not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /snippets/{id}/tags [get]
 func (h *SnippetHandlers) GetSnippetTags(w http.ResponseWriter, r *http.Request) {
 	snippetID := r.PathValue("id")
 	if snippetID == "" {
@@ -262,7 +355,16 @@ func (h *SnippetHandlers) GetSnippetTags(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(map[string][]string{"tags": tags})
 }
 
-// ListAllSnippetTags handles GET /api/snippets/tags
+// ListAllSnippetTags godoc
+// @Summary List all snippet tags
+// @Description Get a list of all available snippet tags in the system
+// @Tags snippet-tags
+// @Accept json
+// @Produce json
+// @Param search query string false "Search term for tag names"
+// @Success 200 {object} models.TagListResponse "List of all snippet tags"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /snippets/tags [get]
 func (h *SnippetHandlers) ListAllSnippetTags(w http.ResponseWriter, r *http.Request) {
 	tags, err := h.repo.Snippets().ListAllTags(r.Context())
 	if err != nil {

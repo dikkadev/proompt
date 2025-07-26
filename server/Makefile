@@ -10,7 +10,7 @@ BINARY_NAME := proompt
 BUILD_DIR := build
 CMD_DIR := cmd/proompt
 
-.PHONY: build test test-unit test-integration clean dev help
+.PHONY: build test test-unit test-integration clean dev help swagger docs
 
 help: ## Show this help message
 	@echo "$(BLUE)Available targets:$(RESET)"
@@ -40,5 +40,12 @@ clean: ## Clean build directory
 dev: build ## Build and run in development mode
 	@echo "$(BLUE)Starting development server...$(RESET)"
 	@./$(BUILD_DIR)/$(BINARY_NAME)
+
+swagger: docs ## Alias for docs target
+
+docs: ## Generate Swagger/OpenAPI documentation
+	@echo "$(BLUE)Generating Swagger documentation...$(RESET)"
+	@swag init -g $(CMD_DIR)/main.go -o docs
+	@echo "$(GREEN)Swagger documentation generated in docs/$(RESET)"
 
 .DEFAULT_GOAL := help

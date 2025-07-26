@@ -21,7 +21,17 @@ func NewTemplateHandler(repo repository.Repository) *TemplateHandler {
 	}
 }
 
-// PreviewTemplate handles POST /api/template/preview
+// PreviewTemplate godoc
+// @Summary Preview template rendering
+// @Description Preview how a template will render with provided data
+// @Tags templates
+// @Accept json
+// @Produce json
+// @Param request body models.TemplatePreviewRequest true "Template preview data"
+// @Success 200 {object} models.TemplatePreviewResponse "Template preview result"
+// @Failure 400 {object} models.ErrorResponse "Invalid request data or template syntax"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /template/preview [post]
 func (h *TemplateHandler) PreviewTemplate(w http.ResponseWriter, r *http.Request) {
 	var req models.TemplatePreviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -74,7 +84,17 @@ func (h *TemplateHandler) PreviewTemplate(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(response)
 }
 
-// AnalyzeTemplate handles POST /api/template/analyze
+// AnalyzeTemplate godoc
+// @Summary Analyze template structure
+// @Description Analyze a template to extract variables, functions, and structure information
+// @Tags templates
+// @Accept json
+// @Produce json
+// @Param request body models.TemplatePreviewRequest true "Template analysis data"
+// @Success 200 {object} models.TemplatePreviewResponse "Template analysis result"
+// @Failure 400 {object} models.ErrorResponse "Invalid request data or template syntax"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /template/analyze [post]
 func (h *TemplateHandler) AnalyzeTemplate(w http.ResponseWriter, r *http.Request) {
 	var req models.TemplatePreviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
