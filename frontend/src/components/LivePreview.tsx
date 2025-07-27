@@ -19,6 +19,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useTemplatePreviewMutation } from "@/lib/queries";
 import { debounce } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Variable {
   name: string;
@@ -201,17 +202,35 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
           {/* Pills Row */}
           <div className="flex items-center gap-2">
             {hasWarnings && (
-              <StatusBadge status="warning">
-                <AlertTriangle className="h-3 w-3" />
-                {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
-              </StatusBadge>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <StatusBadge status="warning">
+                      <AlertTriangle className="h-3 w-3" />
+                      {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
+                    </StatusBadge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Template warnings that may affect output</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             
             {hasUnresolvedVariables && (
-              <StatusBadge status="missing">
-                <AlertTriangle className="h-3 w-3" />
-                Missing variables
-              </StatusBadge>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <StatusBadge status="missing">
+                      <AlertTriangle className="h-3 w-3" />
+                      Missing variables
+                    </StatusBadge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Missing variable values</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
         </div>
@@ -229,17 +248,35 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
             )}
             
             {hasWarnings && (
-              <StatusBadge status="warning">
-                <AlertTriangle className="h-3 w-3" />
-                {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
-              </StatusBadge>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <StatusBadge status="warning">
+                      <AlertTriangle className="h-3 w-3" />
+                      {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
+                    </StatusBadge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Template warnings that may affect output</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             
             {hasUnresolvedVariables && (
-              <StatusBadge status="missing">
-                <AlertTriangle className="h-3 w-3" />
-                Missing variables
-              </StatusBadge>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <StatusBadge status="missing">
+                      <AlertTriangle className="h-3 w-3" />
+                      Missing variables
+                    </StatusBadge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Missing variable values</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
           
@@ -304,13 +341,6 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
                      ? 'border-variable-default/30 text-variable-default bg-variable-default/10'
                      : 'border-variable-missing/30 text-variable-missing bg-variable-missing/10'
                  }`}
-                 title={
-                   variable.status === 'provided' 
-                     ? `Provided: ${variableValues[variable.name]}`
-                     : variable.status === 'default'
-                     ? `Using default: ${variable.defaultValue}`
-                     : 'Missing value'
-                 }
                >
                  {variable.name}
                </Badge>

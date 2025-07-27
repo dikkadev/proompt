@@ -32,6 +32,12 @@ import {
   setStoredTheme,
 } from "@/lib/colorUtils";
 import { useHealthCheck } from "@/lib/queries";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Variable {
   name: string;
@@ -159,50 +165,58 @@ const Index = () => {
 
         <div className="flex items-center gap-2">
           {/* Backend Status Indicator */}
-          <div
-            className="flex items-center gap-2 text-xs"
-            title={
-              healthError
-                ? `Backend offline: ${
-                    healthErrorData?.message || "Connection failed"
-                  }`
-                : healthData
-                ? `Backend connected - Status: ${healthData.status}, Version: ${healthData.version}`
-                : healthLoading
-                ? "Checking backend connection..."
-                : "Connecting to backend..."
-            }
-          >
-            <div
-              className={`w-2 h-2 rounded-full ${
-                healthError
-                  ? "bg-red-500"
-                  : healthData
-                  ? "bg-green-500"
-                  : "bg-yellow-500"
-              }`}
-            />
-            <span className="text-muted-foreground">
-              {healthError
-                ? "Offline"
-                : healthData
-                ? "Connected"
-                : "Connecting..."}
-            </span>
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="flex items-center gap-2 text-xs"
+                  // Removed the native title attribute as a custom tooltip is now used
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      healthError
+                        ? "bg-red-500"
+                        : healthData
+                        ? "bg-green-500"
+                        : "bg-yellow-500"
+                    }`}
+                  />
+                  <span className="text-muted-foreground">
+                    {healthError
+                      ? "Offline"
+                      : healthData
+                      ? "Connected"
+                      : "Connecting..."}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Backend connection status</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleTheme}
-            className="gap-2"
-          >
-            {isDarkMode ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleTheme}
+                  className="gap-2"
+                >
+                  {isDarkMode ? (
+                    <Sun className="h-4 w-4" />
+                  ) : (
+                    <Moon className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Toggle theme</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           <Button variant="ghost" size="sm">
             <Settings className="h-4 w-4" />

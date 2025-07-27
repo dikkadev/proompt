@@ -8,6 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { VariableStateIcon } from "@/components/ui/variable-state-icon";
 import { Hash, X, FileText } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Variable {
   name: string;
@@ -118,9 +124,24 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
                       {variable.name}
                     </Label>
                     <div className="flex items-center gap-2">
-                      <StatusBadge status={state}>
-                        {state === 'provided' ? 'Set' : state === 'default' ? 'Default' : 'Required'}
-                      </StatusBadge>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <StatusBadge status={state}>
+                              {state === 'provided' ? 'Set' : state === 'default' ? 'Default' : 'Required'}
+                            </StatusBadge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              {state === 'provided'
+                                ? 'Variable has a custom value'
+                                : state === 'default'
+                                ? 'Using default value'
+                                : 'Needs a value to be provided'}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                       <VariableStateIcon state={state} />
                     </div>
                   </div>
@@ -134,15 +155,23 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
                       className={`flex-1 ${getInputClasses(state)}`}
                     />
                     {hasValue && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleClearVariable(variable.name)}
-                        className="px-2 h-10 text-muted-foreground hover:text-foreground"
-                        title={`Clear ${variable.name}`}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleClearVariable(variable.name)}
+                              className="px-2 h-10 text-muted-foreground hover:text-foreground"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Clear this variable value</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </div>
                   
@@ -191,15 +220,24 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
                 : 'All variables set'
               }
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setValues({})}
-              className="text-xs h-6 px-2"
-              disabled={Object.keys(values).length === 0}
-            >
-              Clear All
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setValues({})}
+                    className="text-xs h-6 px-2"
+                    disabled={Object.keys(values).length === 0}
+                  >
+                    Clear All
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Clear all variable values</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       )}

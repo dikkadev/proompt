@@ -5,6 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Palette, Check } from "lucide-react";
 import { applyThemeColor, getStoredAccentColor, getDefaultAccentColor } from "@/lib/colorUtils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const presetColors = [
   '#1e9fa2', // Default teal
@@ -69,14 +75,23 @@ export function ColorPicker() {
     <div className="fixed bottom-4 left-4 z-50">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-4 w-4 p-0 rounded-full border border-border/50 hover:border-primary/50 transition-all hover:scale-110"
-            style={{ backgroundColor: currentColor }}
-            aria-label="Choose accent color"
-          >
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-4 p-0 rounded-full border border-border/50 hover:border-primary/50 transition-all hover:scale-110"
+                  style={{ backgroundColor: currentColor }}
+                  aria-label="Choose accent color"
+                >
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Choose accent color for the interface</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </PopoverTrigger>
         
         <PopoverContent 
