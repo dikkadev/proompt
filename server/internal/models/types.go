@@ -39,9 +39,22 @@ func (s *StringSlice) Scan(value interface{}) error {
 		return nil
 	}
 
-	bytes, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("cannot scan %T into StringSlice", value)
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	case *string:
+		if v != nil {
+			bytes = []byte(*v)
+		} else {
+			*s = nil
+			return nil
+		}
+	default:
+		// Debug: log the actual type we're receiving
+		return fmt.Errorf("cannot scan %T (value: %v) into StringSlice", value, value)
 	}
 
 	return json.Unmarshal(bytes, s)
@@ -63,9 +76,22 @@ func (m *JSONMap) Scan(value interface{}) error {
 		return nil
 	}
 
-	bytes, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("cannot scan %T into JSONMap", value)
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	case *string:
+		if v != nil {
+			bytes = []byte(*v)
+		} else {
+			*m = nil
+			return nil
+		}
+	default:
+		// Debug: log the actual type we're receiving
+		return fmt.Errorf("cannot scan %T (value: %v) into JSONMap", value, value)
 	}
 
 	return json.Unmarshal(bytes, m)
