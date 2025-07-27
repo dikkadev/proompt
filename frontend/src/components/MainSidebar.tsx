@@ -68,7 +68,7 @@ export function MainSidebar({
       <Card className="flex-1 border-0 rounded-none bg-card flex flex-col">
       {/* Search Header */}
       <div className="p-3 border-b border-border">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2">
           <div className="flex-1">
             {searchMode === 'combined' ? (
               <div className="relative">
@@ -81,25 +81,14 @@ export function MainSidebar({
                 />
               </div>
             ) : (
-              <div className="space-y-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search prompts..."
-                    value={promptQuery}
-                    onChange={(e) => setPromptQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search snippets..."
-                    value={snippetQuery}
-                    onChange={(e) => setSnippetQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search prompts..."
+                  value={promptQuery}
+                  onChange={(e) => setPromptQuery(e.target.value)}
+                  className="pl-10"
+                />
               </div>
             )}
           </div>
@@ -185,7 +174,7 @@ export function MainSidebar({
           <ResizablePanel defaultSize={50} minSize={20}>
             <div className="h-full flex flex-col">
               <div className="p-3 border-b border-border">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Code2 className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium text-sm">SNIPPETS</span>
@@ -219,6 +208,19 @@ export function MainSidebar({
                     </Tooltip>
                   </div>
                 </div>
+                
+                {/* Snippet search - only show in split mode */}
+                {searchMode === 'split' && (
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search snippets..."
+                      value={snippetQuery}
+                      onChange={(e) => setSnippetQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                )}
               </div>
               <div className="flex-1 p-3 overflow-auto">
                 {/* Mock snippet cards with drag affordance */}
