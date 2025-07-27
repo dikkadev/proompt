@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { CommandPalette } from "@/components/CommandPalette";
 import { PromptEditor } from "@/components/PromptEditor";
 import { VariablePanel } from "@/components/VariablePanel";
-import { SnippetSidebar } from "@/components/SnippetSidebar";
+import { MainSidebar } from "@/components/MainSidebar";
 import { LivePreview } from "@/components/LivePreview";
 import { ColorPicker } from "@/components/ColorPicker";
 import { Button } from "@/components/ui/button";
@@ -220,7 +220,7 @@ const Index = () => {
             maxSize={30}
             className="border-r border-border"
           >
-            <SnippetSidebar
+            <MainSidebar
               onSnippetInsert={handleSnippetInsert}
               isCollapsed={sidebarCollapsed}
               onToggleCollapse={toggleSidebar}
