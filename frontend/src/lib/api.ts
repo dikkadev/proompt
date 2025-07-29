@@ -25,6 +25,8 @@ export interface Snippet {
   created_at: string;
   updated_at: string;
   git_ref?: string;
+  tags?: string[]; // Added missing tags property
+  category?: string; // Added missing category property
 }
 
 export interface Note {

@@ -26,16 +26,22 @@ const getStatusClasses = (status: StatusType): string => {
   }
 };
 
-function StatusBadge({ status, count, children, className, ...props }: StatusBadgeProps) {
+const StatusBadge = React.forwardRef<HTMLDivElement, StatusBadgeProps>((
+  { status, count, children, className, ...props },
+  ref
+) => {
   return (
     <Badge 
       variant="outline" 
       className={cn(getStatusClasses(status), className)} 
+      ref={ref}
       {...props}
     >
       {children}
     </Badge>
   );
-}
+});
+
+StatusBadge.displayName = "StatusBadge";
 
 export { StatusBadge } 

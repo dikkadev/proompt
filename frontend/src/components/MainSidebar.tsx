@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,24 @@ import {
   ChevronDown,
   ChevronRight,
   GripVertical,
+  Maximize,
+  Minimize
 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  TooltipProvider
 } from "@/components/ui/tooltip";
+import { usePrompts, useSnippets } from "@/lib/queries";
+import { Prompt, Snippet } from "@/lib/api";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { PromptCard } from "./PromptCard";
+import { SnippetCard } from "./SnippetCard";
+
 
 interface MainSidebarProps {
   onSnippetInsert: (snippetName: string) => void;
@@ -43,6 +55,98 @@ export function MainSidebar({
   const [snippetQuery, setSnippetQuery] = useState('');
   const [promptViewMode, setPromptViewMode] = useState<'categories' | 'tags'>('categories');
   const [snippetViewMode, setSnippetViewMode] = useState<'categories' | 'tags'>('categories');
+  const [expandedPromptCategories, setExpandedPromptCategories] = useState<Set<string>>(new Set());
+  const [expandedSnippetCategories, setExpandedSnippetCategories] = useState<Set<string>>(new Set());
+  const [allPromptsExpanded, setAllPromptsExpanded] = useState(false);
+  const [allSnippetsExpanded, setAllSnippetsExpanded] = useState(false);
+
+  const AUTO_EXPAND_THRESHOLD = 2; // Configurable: number of categories/tags to auto-expand
+
+  const { data: promptsData } = usePrompts();
+  const { data: snippetsData } = useSnippets();
+
+  const prompts = useMemo(() => promptsData?.data || [], [promptsData]);
+  const snippets = useMemo(() => snippetsData?.data || [], [snippetsData]);
+
+  // Group prompts by use_case
+  const groupedPromptsByUseCase = useMemo(() => {
+    return prompts.reduce((acc, prompt) => {
+      const category = prompt.use_case || 'Uncategorized';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(prompt);
+      return acc;
+    }, {} as Record<string, Prompt[]>);
+  }, [prompts]);
+
+  const sortedPromptCategories = useMemo(() => {
+    return Object.keys(groupedPromptsByUseCase).sort((a, b) => 
+      groupedPromptsByUseCase[b].length - groupedPromptsByUseCase[a].length
+    );
+  }, [groupedPromptsByUseCase]);
+
+  // Group snippets by category (using category field for now, will map to proper snippet category later if needed)
+  const groupedSnippetsByCategory = useMemo(() => {
+    return snippets.reduce((acc, snippet) => {
+      const category = (snippet as any).category || 'Uncategorized'; // Assuming 'category' field on snippet for now
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(snippet);
+      return acc;
+    }, {} as Record<string, Snippet[]>);
+  }, [snippets]);
+
+  const sortedSnippetCategories = useMemo(() => {
+    return Object.keys(groupedSnippetsByCategory).sort((a, b) => 
+      groupedSnippetsByCategory[b].length - groupedSnippetsByCategory[a].length
+    );
+  }, [groupedSnippetsByCategory]);
+
+  const togglePromptCategory = (category: string) => {
+    setExpandedPromptCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSnippetCategory = (category: string) => {
+    setExpandedSnippetCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
+  };
+
+  const handleToggleAllPrompts = () => {
+    if (expandedPromptCategories.size === sortedPromptCategories.length) {
+      // If all are expanded, collapse all
+      setExpandedPromptCategories(new Set());
+    } else {
+      // Otherwise, expand all
+      setExpandedPromptCategories(new Set(sortedPromptCategories));
+    }
+  };
+
+  const handleToggleAllSnippets = () => {
+    if (expandedSnippetCategories.size === sortedSnippetCategories.length) {
+      // If all are expanded, collapse all
+      setExpandedSnippetCategories(new Set());
+    } else {
+      // Otherwise, expand all
+      setExpandedSnippetCategories(new Set(sortedSnippetCategories));
+    }
+  };
 
   if (isCollapsed) {
     return (
@@ -63,48 +167,75 @@ export function MainSidebar({
     setSearchMode(searchMode === 'combined' ? 'split' : 'combined');
   };
 
+  // Filtered prompts based on search query
+  const filteredPrompts = useMemo(() => {
+    const query = searchMode === 'combined' ? combinedQuery : promptQuery;
+    if (!query) return prompts;
+    return prompts.filter(prompt => 
+      prompt.title.toLowerCase().includes(query.toLowerCase()) ||
+      prompt.content.toLowerCase().includes(query.toLowerCase()) ||
+      (prompt.use_case && prompt.use_case.toLowerCase().includes(query.toLowerCase())) ||
+      (prompt.model_compatibility_tags && prompt.model_compatibility_tags.some(tag => tag.toLowerCase().includes(query.toLowerCase())))
+    );
+  }, [prompts, combinedQuery, promptQuery, searchMode]);
+
+  // Filtered snippets based on search query
+  const filteredSnippets = useMemo(() => {
+    const query = searchMode === 'combined' ? combinedQuery : snippetQuery;
+    if (!query) return snippets;
+    return snippets.filter(snippet =>
+      snippet.title.toLowerCase().includes(query.toLowerCase()) ||
+      snippet.content.toLowerCase().includes(query.toLowerCase()) ||
+      (snippet.description && snippet.description.toLowerCase().includes(query.toLowerCase())) ||
+      ((snippet as any).tags && (snippet as any).tags.some((tag: string) => tag.toLowerCase().includes(query.toLowerCase()))) ||
+      ((snippet as any).category && (snippet as any).category.toLowerCase().includes(query.toLowerCase()))
+    );
+  }, [snippets, combinedQuery, snippetQuery, searchMode]);
+
+
   return (
     <div className="h-full flex flex-col">
-      <Card className="flex-1 border-0 rounded-none bg-card flex flex-col">
-      {/* Search Header */}
-      <div className="p-3 border-b border-border">
-        <div className="flex items-center gap-2">
+      <TooltipProvider delayDuration={100}>
+        <Card className="flex-1 border-0 rounded-none bg-card flex flex-col">
+      {/* Search Header (always visible) */}
+      <div className="p-2 border-b border-border">
+        <div className="flex items-center gap-1">
           <div className="flex-1">
             {searchMode === 'combined' ? (
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                 <Input
                   placeholder="Search prompts & snippets..."
                   value={combinedQuery}
                   onChange={(e) => setCombinedQuery(e.target.value)}
-                  className="pl-10"
+                  className="h-8 pl-8 text-sm"
                 />
               </div>
             ) : (
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                 <Input
                   placeholder="Search prompts..."
                   value={promptQuery}
                   onChange={(e) => setPromptQuery(e.target.value)}
-                  className="pl-10"
+                  className="h-8 pl-8 text-sm"
                 />
               </div>
             )}
           </div>
           
           <Tooltip>
-            <TooltipTrigger asChild>
+            <TooltipTrigger asChild className="cursor-pointer">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleSearchMode}
-                className="h-8 w-8 p-0"
+                className="h-7 w-7 p-0"
               >
                 {searchMode === 'combined' ? (
-                  <Layers className="h-4 w-4" />
+                  <Layers className="h-3.5 w-3.5" />
                 ) : (
-                  <SplitSquareHorizontal className="h-4 w-4" />
+                  <SplitSquareHorizontal className="h-3.5 w-3.5" />
                 )}
               </Button>
             </TooltipTrigger>
@@ -121,17 +252,34 @@ export function MainSidebar({
       <div className="flex-1 overflow-hidden">
         <ResizablePanelGroup direction="vertical">
           {/* Prompts Pane */}
-          <ResizablePanel defaultSize={50} minSize={20}>
+          <ResizablePanel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col">
-              <div className="p-3 border-b border-border">
+              <div className="p-2 border-b border-border">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-1">
+                    {/* <FileText className="h-3.5 w-3.5 text-muted-foreground" /> */}
                     <span className="font-medium text-sm">PROMPTS</span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5">
+                    {/* New Toggle All Prompts Button */}
                     <Tooltip>
-                      <TooltipTrigger asChild>
+                      <TooltipTrigger asChild className="cursor-pointer">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleToggleAllPrompts}
+                          className="h-6 w-6 p-0"
+                        >
+                          {expandedPromptCategories.size === sortedPromptCategories.length ? <Minimize className="h-3 w-3" /> : <Maximize className="h-3 w-3" />}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {expandedPromptCategories.size === sortedPromptCategories.length ? 'Collapse all prompts' : 'Expand all prompts'}
+                      </TooltipContent>
+                    </Tooltip>
+                    <Separator orientation="vertical" className="h-4 mx-1" />
+                    <Tooltip>
+                      <TooltipTrigger asChild className="cursor-pointer">
                         <Button
                           variant={promptViewMode === 'categories' ? 'secondary' : 'ghost'}
                           size="sm"
@@ -144,7 +292,7 @@ export function MainSidebar({
                       <TooltipContent>View by categories</TooltipContent>
                     </Tooltip>
                     <Tooltip>
-                      <TooltipTrigger asChild>
+                      <TooltipTrigger asChild className="cursor-pointer">
                         <Button
                           variant={promptViewMode === 'tags' ? 'secondary' : 'ghost'}
                           size="sm"
@@ -159,29 +307,90 @@ export function MainSidebar({
                   </div>
                 </div>
               </div>
-              <div className="flex-1 p-3 overflow-auto">
-                {/* TODO: Implement prompt lists/search results */}
-                <div className="text-sm text-muted-foreground">
-                  Prompt organization coming soon...
-                </div>
-              </div>
+              <ScrollArea className="flex-1 px-1 py-0">
+                {combinedQuery || promptQuery ? (
+                  // Search results for prompts
+                  <div className="space-y-1 px-1">
+                    {filteredPrompts.length > 0 ? (
+                      filteredPrompts.map(prompt => (
+                        <PromptCard key={prompt.id} prompt={prompt} className="my-0.5" />
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground py-1 px-1">No matching prompts found.</div>
+                    )}
+                  </div>
+                ) : (
+                  // Organized prompts by categories/tags
+                  <div className="space-y-1 px-1">
+                    {sortedPromptCategories.length > 0 ? (
+                      sortedPromptCategories.map(category => (
+                        <Collapsible 
+                          key={category} 
+                          open={expandedPromptCategories.has(category) || allPromptsExpanded || sortedPromptCategories.length <= AUTO_EXPAND_THRESHOLD} 
+                          onOpenChange={() => togglePromptCategory(category)}
+                          className="my-px cursor-pointer"
+                        >
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" className="w-full justify-between font-normal h-7 px-1 py-1 text-sm">
+                              <span className="flex items-center gap-1 min-w-0">
+                                <Folder className="h-3 w-3 text-muted-foreground" />
+                                <span className="flex-1 overflow-hidden whitespace-nowrap cursor-pointer">{category}</span>
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Badge variant="outline" className="ml-1 text-xs px-0 py-0 flex items-center justify-center border-transparent bg-transparent text-muted-foreground shrink-0">
+                                  {groupedPromptsByUseCase[category].length}
+                                </Badge>
+                                {expandedPromptCategories.has(category) ? <ChevronDown className="h-3 w-3 text-muted-foreground" /> : <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+                              </span>
+                            </Button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="space-y-1 p-0">
+                            {groupedPromptsByUseCase[category].map(prompt => (
+                              <PromptCard key={prompt.id} prompt={prompt} className="ml-1 my-0.5" />
+                            ))}
+                          </CollapsibleContent>
+                        </Collapsible>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground py-1 px-1">No prompts available.</div>
+                    )}
+                  </div>
+                )}
+              </ScrollArea>
             </div>
           </ResizablePanel>
 
           <ResizableHandle withHandle />
 
           {/* Snippets Pane */}
-          <ResizablePanel defaultSize={50} minSize={20}>
+          <ResizablePanel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col">
-              <div className="p-3 border-b border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Code2 className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 border-b border-border">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1">
+                    {/* <Code2 className="h-3.5 w-3.5 text-muted-foreground" /> */}
                     <span className="font-medium text-sm">SNIPPETS</span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5">
+                    {/* New Toggle All Snippets Button */}
                     <Tooltip>
-                      <TooltipTrigger asChild>
+                      <TooltipTrigger asChild className="cursor-pointer">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleToggleAllSnippets}
+                          className="h-6 w-6 p-0"
+                        >
+                          {expandedSnippetCategories.size === sortedSnippetCategories.length ? <Minimize className="h-3 w-3" /> : <Maximize className="h-3 w-3" />}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {expandedSnippetCategories.size === sortedSnippetCategories.length ? 'Collapse all snippets' : 'Expand all snippets'}
+                      </TooltipContent>
+                    </Tooltip>
+                    <Separator orientation="vertical" className="h-4 mx-1" />
+                    <Tooltip>
+                      <TooltipTrigger asChild className="cursor-pointer">
                         <Button
                           variant={snippetViewMode === 'categories' ? 'secondary' : 'ghost'}
                           size="sm"
@@ -194,7 +403,7 @@ export function MainSidebar({
                       <TooltipContent>View by categories</TooltipContent>
                     </Tooltip>
                     <Tooltip>
-                      <TooltipTrigger asChild>
+                      <TooltipTrigger asChild className="cursor-pointer">
                         <Button
                           variant={snippetViewMode === 'tags' ? 'secondary' : 'ghost'}
                           size="sm"
@@ -211,120 +420,73 @@ export function MainSidebar({
                 
                 {/* Snippet search - only show in split mode */}
                 {searchMode === 'split' && (
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <div className="relative mt-1">
+                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                     <Input
                       placeholder="Search snippets..."
                       value={snippetQuery}
                       onChange={(e) => setSnippetQuery(e.target.value)}
-                      className="pl-10"
+                      className="h-8 pl-8 text-sm"
                     />
                   </div>
                 )}
               </div>
-              <div className="flex-1 p-3 overflow-auto">
-                {/* Mock snippet cards with drag affordance */}
-                <div className="space-y-2">
-                  <SnippetCard
-                    snippet={{
-                      id: '1',
-                      title: 'analysis_guidelines',
-                      description: 'Standard guidelines for content analysis',
-                      tags: ['analysis', 'guidelines', 'methodology'],
-                      category: 'Analysis'
-                    }}
-                    onInsert={onSnippetInsert}
-                  />
-                  <SnippetCard
-                    snippet={{
-                      id: '2',
-                      title: 'response_template',
-                      description: 'Standard response format template',
-                      tags: ['template', 'format', 'structure'],
-                      category: 'Templates'
-                    }}
-                    onInsert={onSnippetInsert}
-                  />
-                  <SnippetCard
-                    snippet={{
-                      id: '3',
-                      title: 'code_review_checklist',
-                      description: 'Comprehensive code review checklist',
-                      tags: ['code', 'review', 'checklist'],
-                      category: 'Development'
-                    }}
-                    onInsert={onSnippetInsert}
-                  />
-                </div>
-              </div>
+              <ScrollArea className="flex-1 px-1 py-0">
+                {combinedQuery || snippetQuery ? (
+                  // Search results for snippets
+                  <div className="space-y-1 px-1">
+                    {filteredSnippets.length > 0 ? (
+                      filteredSnippets.map(snippet => (
+                        <SnippetCard key={snippet.id} snippet={snippet} onInsert={onSnippetInsert} className="my-px" />
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground py-1 px-1">No matching snippets found.</div>
+                    )}
+                  </div>
+                ) : (
+                  // Organized snippets by categories/tags
+                  <div className="space-y-1 px-1">
+                    {sortedSnippetCategories.length > 0 ? (
+                      sortedSnippetCategories.map(category => (
+                        <Collapsible 
+                          key={category} 
+                          open={expandedSnippetCategories.has(category) || allSnippetsExpanded || sortedSnippetCategories.length <= AUTO_EXPAND_THRESHOLD} 
+                          onOpenChange={() => toggleSnippetCategory(category)}
+                          className="my-px cursor-pointer"
+                        >
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" className="w-full justify-between font-normal h-7 px-1 py-1 text-sm">
+                              <span className="flex items-center gap-1 min-w-0">
+                                <Folder className="h-3 w-3 text-muted-foreground" />
+                                <span className="flex-1 overflow-hidden whitespace-nowrap cursor-pointer">{category}</span>
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Badge variant="outline" className="ml-1 text-xs px-0 py-0 flex items-center justify-center border-transparent bg-transparent text-muted-foreground shrink-0">
+                                  {groupedSnippetsByCategory[category].length}
+                                </Badge>
+                                {expandedSnippetCategories.has(category) ? <ChevronDown className="h-3 w-3 text-muted-foreground" /> : <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+                              </span>
+                            </Button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="space-y-1 p-0">
+                            {groupedSnippetsByCategory[category].map(snippet => (
+                              <SnippetCard key={snippet.id} snippet={snippet} onInsert={onSnippetInsert} className="ml-1" />
+                            ))}
+                          </CollapsibleContent>
+                        </Collapsible>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground py-1 px-1">No snippets available.</div>
+                    )}
+                  </div>
+                )}
+              </ScrollArea>
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
     </Card>
+    </TooltipProvider>
     </div>
-  );
-}
-
-// Draggable snippet card component with visual grab affordance
-function SnippetCard({ 
-  snippet, 
-  onInsert 
-}: { 
-  snippet: {
-    id: string;
-    title: string;
-    description: string;
-    tags: string[];
-    category: string;
-  };
-  onInsert: (name: string) => void;
-}) {
-  return (
-    <Card className="p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 border-2 border-transparent hover:border-primary/20 bg-gradient-to-r from-background to-background hover:from-primary/5 hover:to-primary/10">
-      <div className="flex items-start gap-2">
-        {/* Drag handle icon */}
-        <div className="flex-shrink-0 mt-0.5">
-          <GripVertical className="h-4 w-4 text-muted-foreground/60" />
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <Code2 className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-            <span className="font-mono text-sm font-medium truncate">
-              @{snippet.title}
-            </span>
-          </div>
-          
-          {snippet.description && (
-            <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-              {snippet.description}
-            </p>
-          )}
-          
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex flex-wrap gap-1 min-w-0">
-              {snippet.tags.slice(0, 2).map((tag) => (
-                <span 
-                  key={tag}
-                  className="px-1 py-0.5 bg-secondary/60 text-secondary-foreground rounded text-xs"
-                >
-                  #{tag}
-                </span>
-              ))}
-              {snippet.tags.length > 2 && (
-                <span className="text-muted-foreground">
-                  +{snippet.tags.length - 2}
-                </span>
-              )}
-            </div>
-            
-            <span className="text-muted-foreground ml-2 flex-shrink-0">
-              {snippet.category}
-            </span>
-          </div>
-        </div>
-      </div>
-    </Card>
   );
 } 

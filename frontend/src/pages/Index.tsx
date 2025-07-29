@@ -229,9 +229,9 @@ const Index = () => {
         <ResizablePanelGroup direction="horizontal" className="h-full">
           {/* Left Sidebar - Snippets */}
           <ResizablePanel
-            defaultSize={20}
-            minSize={5}
-            maxSize={30}
+            defaultSize={21}
+            minSize={17}
+            maxSize={35}
             className="border-r border-border"
           >
             <MainSidebar
