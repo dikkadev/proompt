@@ -54,7 +54,7 @@ export function ColorPicker() {
       const dialogHeight = 400; // Approximate height
 
       let x = rect.right - dialogWidth;
-      let y = rect.bottom + 8; // 8px below the button
+      let y = rect.bottom + 24; // 1.5rem below the button
 
       // Keep dialog within viewport bounds
       const maxX = window.innerWidth - dialogWidth;
@@ -182,7 +182,7 @@ export function ColorPicker() {
         onClick={() => setIsOpen(true)}
         aria-label="Choose accent color"
       >
-        <Palette className="h-4 w-4" />
+        <Palette className="h-4 w-4" fill={currentColor} />
       </Button>
 
       {/* Custom Draggable Dialog */}
@@ -257,7 +257,7 @@ export function ColorPicker() {
                     {presetColors.map((color) => (
                       <button
                         key={color}
-                        className="w-8 h-8 rounded border-2 border-border hover:border-foreground transition-colors relative group"
+                        className="w-8 h-8 rounded border-2 border-border hover:border-foreground transition-colors relative group cursor-pointer"
                         style={{ backgroundColor: color }}
                         onClick={() => handlePresetClick(color)}
                         aria-label={`Select ${color} color`}
@@ -275,7 +275,7 @@ export function ColorPicker() {
                   <Button 
                     size="sm" 
                     onClick={handleApply}
-                    className="flex-1"
+                    className="flex-1 cursor-pointer"
                   >
                     Apply
                   </Button>
@@ -283,6 +283,7 @@ export function ColorPicker() {
                     size="sm" 
                     variant="ghost" 
                     onClick={handleCancel}
+                    className="cursor-pointer"
                   >
                     Cancel
                   </Button>

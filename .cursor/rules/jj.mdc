@@ -21,11 +21,6 @@ Remember:
 
 When you've completed the task, provide a summary of the actions you took using jj commands. Include any important decisions you made regarding revision creation or data management.
 
-Your final output should be structured as follows:
-<jj_actions>
-[List the jj commands you used and briefly explain each action]
-</jj_actions>
-
 <summary>
 [Provide a brief summary of what you accomplished and any key decisions you made]
 </summary>
@@ -135,7 +130,5 @@ Here’s your fully non-interactive **“edit”**-workflow cheat sheet for `jj`
 
 [1]: https://jj-vcs.github.io/jj/latest/cli-reference/ "CLI reference - Jujutsu docs"
 [2]: https://jj-vcs.github.io/jj/latest/FAQ/?utm_source=chatgpt.com "FAQ"
-
-
 
 
