@@ -188,22 +188,20 @@ Please format your response as:
         <div className="lg:hidden">
           {/* Title Row */}
           <div className="flex items-center gap-2 flex-1 min-w-0 mb-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Input
-                    style={{viewTransitionName: 'prompt-title'}}
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Enter prompt title..."
-                    className="font-semibold text-lg bg-transparent border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-1 h-auto py-0 flex-1 min-w-0 hover:bg-muted/20 focus:bg-muted/30 rounded transition-colors"
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Enter a descriptive title for your prompt</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Input
+                  style={{viewTransitionName: 'prompt-title'}}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter prompt title..."
+                  className="font-semibold text-lg bg-transparent border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-1 h-auto py-0 flex-1 min-w-0 hover:bg-muted/20 focus:bg-muted/30 rounded transition-colors"
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Enter a descriptive title for your prompt</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
           
           {/* Buttons Row */}
@@ -237,22 +235,20 @@ Please format your response as:
         {/* Desktop/Wide: Single row */}
         <div className="hidden lg:flex lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Input
-                    style={{viewTransitionName: 'prompt-title'}}
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Enter prompt title..."
-                    className="font-semibold text-lg bg-transparent border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-1 h-auto py-0 flex-1 min-w-0 hover:bg-muted/20 focus:bg-muted/30 rounded transition-colors"
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Enter a descriptive title for your prompt</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Input
+                  style={{viewTransitionName: 'prompt-title'}}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter prompt title..."
+                  className="font-semibold text-lg bg-transparent border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-1 h-auto py-0 flex-1 min-w-0 hover:bg-muted/20 focus:bg-muted/30 rounded transition-colors"
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Enter a descriptive title for your prompt</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
           
           <div className="flex items-center gap-2 flex-shrink-0">

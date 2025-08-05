@@ -178,11 +178,13 @@ export function ColorPicker() {
         ref={triggerRef}
         variant="ghost"
         size="sm"
-        className="gap-2"
+        className="gap-2 cursor-pointer"
         onClick={() => setIsOpen(true)}
         aria-label="Choose accent color"
       >
-        <Palette className="h-4 w-4" fill={currentColor} />
+        {/* <Palette className="h-4 w-4" fill={currentColor} /> */}
+        {/* replace with justa circle of the color */}
+        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: currentColor }} />
       </Button>
 
       {/* Custom Draggable Dialog */}
@@ -288,8 +290,8 @@ export function ColorPicker() {
                     Cancel
                   </Button>
                 </div>
-              </div>
-            </Card>
+                              </div>
+              </Card>
           </div>
         </>
       )}

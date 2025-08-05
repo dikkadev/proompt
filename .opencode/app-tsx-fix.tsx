@@ -9,11 +9,8 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider 
-      delayDuration={300} 
-      skipDelayDuration={100} 
-      disableHoverableContent={false}
-    >
+    {/* Configure global TooltipProvider with proper settings */}
+    <TooltipProvider delayDuration={100} skipDelayDuration={300}>
       <Toaster />
       <BrowserRouter>
         <Routes>
@@ -26,4 +23,4 @@ const App = () => (
   </QueryClientProvider>
 );
 
-export default App;
+export default App; 

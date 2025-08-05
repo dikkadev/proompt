@@ -214,8 +214,7 @@ export function MainSidebar({
 
   return (
     <div className="h-full flex flex-col">
-      <TooltipProvider delayDuration={100}>
-        <Card className="flex-1 border-0 rounded-none bg-card flex flex-col">
+      <Card className="flex-1 border-0 rounded-none bg-card flex flex-col">
       {/* Search Header (always visible) */}
       <div className="p-2 border-b border-border">
         <div className="flex items-center gap-1">
@@ -540,7 +539,6 @@ export function MainSidebar({
         </ResizablePanelGroup>
       </div>
     </Card>
-    </TooltipProvider>
     </div>
   );
 } 

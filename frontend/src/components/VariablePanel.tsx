@@ -124,24 +124,22 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
                       {variable.name}
                     </Label>
                     <div className="flex items-center gap-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <StatusBadge status={state}>
-                              {state === 'provided' ? 'Set' : state === 'default' ? 'Default' : 'Required'}
-                            </StatusBadge>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>
-                              {state === 'provided'
-                                ? 'Variable has a custom value'
-                                : state === 'default'
-                                ? 'Using default value'
-                                : 'Needs a value to be provided'}
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <StatusBadge status={state}>
+                            {state === 'provided' ? 'Set' : state === 'default' ? 'Default' : 'Required'}
+                          </StatusBadge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            {state === 'provided'
+                              ? 'Variable has a custom value'
+                              : state === 'default'
+                              ? 'Using default value'
+                              : 'Needs a value to be provided'}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
                       <VariableStateIcon state={state} />
                     </div>
                   </div>
@@ -155,23 +153,21 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
                       className={`flex-1 ${getInputClasses(state)}`}
                     />
                     {hasValue && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleClearVariable(variable.name)}
-                              className="px-2 h-10 text-muted-foreground hover:text-foreground"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Clear this variable value</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleClearVariable(variable.name)}
+                            className="px-2 h-10 text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Clear this variable value</p>
+                        </TooltipContent>
+                      </Tooltip>
                     )}
                   </div>
                   
@@ -220,24 +216,22 @@ export function VariablePanel({ variables, onVariableChange, snippets }: Variabl
                 : 'All variables set'
               }
             </div>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setValues({})}
-                    className="text-xs h-6 px-2"
-                    disabled={Object.keys(values).length === 0}
-                  >
-                    Clear All
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Clear all variable values</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setValues({})}
+                  className="text-xs h-6 px-2"
+                  disabled={Object.keys(values).length === 0}
+                >
+                  Clear All
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Clear all variable values</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
       )}

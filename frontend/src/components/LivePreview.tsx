@@ -202,35 +202,31 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
           {/* Pills Row */}
           <div className="flex items-center gap-2">
             {hasWarnings && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <StatusBadge status="warning">
-                      <AlertTriangle className="h-3 w-3" />
-                      {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
-                    </StatusBadge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Template warnings that may affect output</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <StatusBadge status="warning">
+                    <AlertTriangle className="h-3 w-3" />
+                    {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
+                  </StatusBadge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Template warnings that may affect output</p>
+                </TooltipContent>
+              </Tooltip>
             )}
             
             {hasUnresolvedVariables && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <StatusBadge status="missing">
-                      <AlertTriangle className="h-3 w-3" />
-                      Missing variables
-                    </StatusBadge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Missing variable values</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <StatusBadge status="missing">
+                    <AlertTriangle className="h-3 w-3" />
+                    Missing variables
+                  </StatusBadge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Missing variable values</p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
         </div>
@@ -248,35 +244,31 @@ export function LivePreview({ content, variables, variableValues, isVisible }: L
             )}
             
             {hasWarnings && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <StatusBadge status="warning">
-                      <AlertTriangle className="h-3 w-3" />
-                      {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
-                    </StatusBadge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Template warnings that may affect output</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <StatusBadge status="warning">
+                    <AlertTriangle className="h-3 w-3" />
+                    {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
+                  </StatusBadge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Template warnings that may affect output</p>
+                </TooltipContent>
+              </Tooltip>
             )}
             
             {hasUnresolvedVariables && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <StatusBadge status="missing">
-                      <AlertTriangle className="h-3 w-3" />
-                      Missing variables
-                    </StatusBadge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Missing variable values</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <StatusBadge status="missing">
+                    <AlertTriangle className="h-3 w-3" />
+                    Missing variables
+                  </StatusBadge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Missing variable values</p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
           
