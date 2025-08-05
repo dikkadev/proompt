@@ -89,23 +89,11 @@ export function MainSidebar({
   // Group snippets by category (using category field for now, will map to proper snippet category later if needed)
   const groupedSnippetsByCategory = useMemo(() => {
     return snippets.reduce((acc, snippet) => {
-      const category = snippet.category || 'Uncategorized';
+      const category = (snippet as any).category || 'Uncategorized'; // Assuming 'category' field on snippet for now
       if (!acc[category]) {
         acc[category] = [];
       }
       acc[category].push(snippet);
-      return acc;
-    }, {} as Record<string, Snippet[]>);
-  }, [snippets]);
-
-  const groupedSnippetsByTag = useMemo(() => {
-    return snippets.reduce((acc, snippet) => {
-      (snippet.tags || []).forEach(tag => {
-        if (!acc[tag]) {
-          acc[tag] = [];
-        }
-        acc[tag].push(snippet);
-      });
       return acc;
     }, {} as Record<string, Snippet[]>);
   }, [snippets]);
@@ -115,12 +103,6 @@ export function MainSidebar({
       groupedSnippetsByCategory[b].length - groupedSnippetsByCategory[a].length
     );
   }, [groupedSnippetsByCategory]);
-
-  const sortedSnippetTags = useMemo(() => {
-    return Object.keys(groupedSnippetsByTag).sort((a, b) => 
-      groupedSnippetsByTag[b].length - groupedSnippetsByTag[a].length
-    );
-  }, [groupedSnippetsByTag]);
 
   const togglePromptCategory = (category: string) => {
     setExpandedPromptCategories(prev => {
@@ -157,13 +139,12 @@ export function MainSidebar({
   };
 
   const handleToggleAllSnippets = () => {
-    const allCategories = snippetViewMode === 'categories' ? sortedSnippetCategories : sortedSnippetTags;
-    if (expandedSnippetCategories.size === allCategories.length) {
+    if (expandedSnippetCategories.size === sortedSnippetCategories.length) {
       // If all are expanded, collapse all
       setExpandedSnippetCategories(new Set());
     } else {
       // Otherwise, expand all
-      setExpandedSnippetCategories(new Set(allCategories));
+      setExpandedSnippetCategories(new Set(sortedSnippetCategories));
     }
   };
 
@@ -206,8 +187,8 @@ export function MainSidebar({
       snippet.title.toLowerCase().includes(query.toLowerCase()) ||
       snippet.content.toLowerCase().includes(query.toLowerCase()) ||
       (snippet.description && snippet.description.toLowerCase().includes(query.toLowerCase())) ||
-      (snippet.tags && snippet.tags.some((tag: string) => tag.toLowerCase().includes(query.toLowerCase()))) ||
-      (snippet.category && snippet.category.toLowerCase().includes(query.toLowerCase()))
+      ((snippet as any).tags && (snippet as any).tags.some((tag: string) => tag.toLowerCase().includes(query.toLowerCase()))) ||
+      ((snippet as any).category && (snippet as any).category.toLowerCase().includes(query.toLowerCase()))
     );
   }, [snippets, combinedQuery, snippetQuery, searchMode]);
 
@@ -400,11 +381,11 @@ export function MainSidebar({
                           onClick={handleToggleAllSnippets}
                           className="h-6 w-6 p-0"
                         >
-                          {expandedSnippetCategories.size === (snippetViewMode === 'categories' ? sortedSnippetCategories.length : sortedSnippetTags.length) ? <Minimize className="h-3 w-3" /> : <Maximize className="h-3 w-3" />}
+                          {expandedSnippetCategories.size === sortedSnippetCategories.length ? <Minimize className="h-3 w-3" /> : <Maximize className="h-3 w-3" />}
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {expandedSnippetCategories.size === (snippetViewMode === 'categories' ? sortedSnippetCategories.length : sortedSnippetTags.length) ? 'Collapse all snippets' : 'Expand all snippets'}
+                        {expandedSnippetCategories.size === sortedSnippetCategories.length ? 'Collapse all snippets' : 'Expand all snippets'}
                       </TooltipContent>
                     </Tooltip>
                     <Separator orientation="vertical" className="h-4 mx-1" />
@@ -465,72 +446,37 @@ export function MainSidebar({
                 ) : (
                   // Organized snippets by categories/tags
                   <div className="space-y-1 px-1">
-                    {snippetViewMode === 'categories' ? (
-                      sortedSnippetCategories.length > 0 ? (
-                        sortedSnippetCategories.map(category => (
-                          <Collapsible 
-                            key={category} 
-                            open={expandedSnippetCategories.has(category) || allSnippetsExpanded || sortedSnippetCategories.length <= AUTO_EXPAND_THRESHOLD} 
-                            onOpenChange={() => toggleSnippetCategory(category)}
-                            className="my-px cursor-pointer"
-                          >
-                            <CollapsibleTrigger asChild>
-                              <Button variant="ghost" className="w-full justify-between font-normal h-7 px-1 py-1 text-sm">
-                                <span className="flex items-center gap-1 min-w-0">
-                                  <Folder className="h-3 w-3 text-muted-foreground" />
-                                  <span className="flex-1 overflow-hidden whitespace-nowrap cursor-pointer">{category}</span>
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Badge variant="outline" className="ml-1 text-xs px-0 py-0 flex items-center justify-center border-transparent bg-transparent text-muted-foreground shrink-0">
-                                    {groupedSnippetsByCategory[category].length}
-                                  </Badge>
-                                  {expandedSnippetCategories.has(category) ? <ChevronDown className="h-3 w-3 text-muted-foreground" /> : <ChevronRight className="h-3 w-3 text-muted-foreground" />}
-                                </span>
-                              </Button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="space-y-1 p-0">
-                              {groupedSnippetsByCategory[category].map(snippet => (
-                                <SnippetCard key={snippet.id} snippet={snippet} onInsert={onSnippetInsert} className="ml-1" />
-                              ))}
-                            </CollapsibleContent>
-                          </Collapsible>
-                        ))
-                      ) : (
-                        <div className="text-sm text-muted-foreground py-1 px-1">No snippets available.</div>
-                      )
+                    {sortedSnippetCategories.length > 0 ? (
+                      sortedSnippetCategories.map(category => (
+                        <Collapsible 
+                          key={category} 
+                          open={expandedSnippetCategories.has(category) || allSnippetsExpanded || sortedSnippetCategories.length <= AUTO_EXPAND_THRESHOLD} 
+                          onOpenChange={() => toggleSnippetCategory(category)}
+                          className="my-px cursor-pointer"
+                        >
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" className="w-full justify-between font-normal h-7 px-1 py-1 text-sm">
+                              <span className="flex items-center gap-1 min-w-0">
+                                <Folder className="h-3 w-3 text-muted-foreground" />
+                                <span className="flex-1 overflow-hidden whitespace-nowrap cursor-pointer">{category}</span>
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Badge variant="outline" className="ml-1 text-xs px-0 py-0 flex items-center justify-center border-transparent bg-transparent text-muted-foreground shrink-0">
+                                  {groupedSnippetsByCategory[category].length}
+                                </Badge>
+                                {expandedSnippetCategories.has(category) ? <ChevronDown className="h-3 w-3 text-muted-foreground" /> : <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+                              </span>
+                            </Button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="space-y-1 p-0">
+                            {groupedSnippetsByCategory[category].map(snippet => (
+                              <SnippetCard key={snippet.id} snippet={snippet} onInsert={onSnippetInsert} className="ml-1" />
+                            ))}
+                          </CollapsibleContent>
+                        </Collapsible>
+                      ))
                     ) : (
-                      sortedSnippetTags.length > 0 ? (
-                        sortedSnippetTags.map(tag => (
-                          <Collapsible 
-                            key={tag} 
-                            open={expandedSnippetCategories.has(tag) || allSnippetsExpanded || sortedSnippetTags.length <= AUTO_EXPAND_THRESHOLD} 
-                            onOpenChange={() => toggleSnippetCategory(tag)}
-                            className="my-px cursor-pointer"
-                          >
-                            <CollapsibleTrigger asChild>
-                              <Button variant="ghost" className="w-full justify-between font-normal h-7 px-1 py-1 text-sm">
-                                <span className="flex items-center gap-1 min-w-0">
-                                  <Hash className="h-3 w-3 text-muted-foreground" />
-                                  <span className="flex-1 overflow-hidden whitespace-nowrap cursor-pointer">{tag}</span>
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Badge variant="outline" className="ml-1 text-xs px-0 py-0 flex items-center justify-center border-transparent bg-transparent text-muted-foreground shrink-0">
-                                    {groupedSnippetsByTag[tag].length}
-                                  </Badge>
-                                  {expandedSnippetCategories.has(tag) ? <ChevronDown className="h-3 w-3 text-muted-foreground" /> : <ChevronRight className="h-3 w-3 text-muted-foreground" />}
-                                </span>
-                              </Button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="space-y-1 p-0">
-                              {groupedSnippetsByTag[tag].map(snippet => (
-                                <SnippetCard key={`${snippet.id}-${tag}`} snippet={snippet} onInsert={onSnippetInsert} className="ml-1" />
-                              ))}
-                            </CollapsibleContent>
-                          </Collapsible>
-                        ))
-                      ) : (
-                        <div className="text-sm text-muted-foreground py-1 px-1">No snippets with tags available.</div>
-                      )
+                      <div className="text-sm text-muted-foreground py-1 px-1">No snippets available.</div>
                     )}
                   </div>
                 )}

@@ -72,35 +72,26 @@ export function ColorPicker() {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 z-50">
+    <div className="">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-4 w-4 p-0 rounded-full border border-border/50 hover:border-primary/50 transition-all hover:scale-110"
-                  style={{ backgroundColor: currentColor }}
-                  aria-label="Choose accent color"
-                >
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Choose accent color for the interface</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            aria-label="Choose accent color"
+          >
+            <Palette className="h-4 w-4" />
+          </Button>
         </PopoverTrigger>
         
         <PopoverContent 
-          className="w-64 p-4" 
-          side="top" 
-          align="start"
+          className="w-64 p-0" 
+          side="bottom" 
+          align="end"
           sideOffset={8}
         >
-          <Card className="p-4 space-y-4">
+          <Card className="p-4 space-y-4 border-none shadow-none">
             <div className="space-y-2">
               <h4 className="font-medium text-sm">Accent Color</h4>
               <p className="text-xs text-muted-foreground">
@@ -149,7 +140,7 @@ export function ColorPicker() {
             </div>
             
             {/* Actions */}
-            <div className="flex gap-2 pt-2 border-t border-border">
+            <div className="flex gap-2 pt-4 mt-4 border-t border-border">
               <Button 
                 size="sm" 
                 onClick={handleApply}

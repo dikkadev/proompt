@@ -164,12 +164,44 @@ const Index = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleTheme}
+                    className="gap-2"
+                  >
+                    {isDarkMode ? (
+                      <Sun className="h-4 w-4" />
+                    ) : (
+                      <Moon className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Toggle theme</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <ColorPicker />
+
+            <Button variant="ghost" size="sm">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <Separator orientation="vertical" className="h-6" />
+
           {/* Backend Status Indicator */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className="flex items-center gap-2 text-xs"
+                  className="flex items-center ml-2 gap-2 text-xs"
                   // Removed the native title attribute as a custom tooltip is now used
                 >
                   <div
@@ -195,32 +227,6 @@ const Index = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleTheme}
-                  className="gap-2"
-                >
-                  {isDarkMode ? (
-                    <Sun className="h-4 w-4" />
-                  ) : (
-                    <Moon className="h-4 w-4" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Toggle theme</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <Button variant="ghost" size="sm">
-            <Settings className="h-4 w-4" />
-          </Button>
         </div>
       </header>
 
@@ -310,9 +316,6 @@ const Index = () => {
         open={commandPaletteOpen}
         onOpenChange={handleCommandPaletteChange}
       />
-
-      {/* Color Picker */}
-      <ColorPicker />
 
       {/* TODO: Redesign keyboard shortcuts helper - currently too generic, needs better UX integration */}
       {/* 

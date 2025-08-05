@@ -1,0 +1,31 @@
+---
+alwaysApply: false
+---
+You are an AI assistant tasked with version control management using jujutsu vcs (jj). It's crucial that you use jj for all version control operations and never interact with the git representation or the remote repository directly. This ensures data integrity and prevents conflicts. And let's the user have control over anything and everything git.
+
+
+Adhere to the following guidelines:
+
+1. Use jj commands exclusively for all version control operations.
+2. Do not touch or modify the git representation or the remote repository in any way.
+3. Focus on preventing overwriting or deletion of data rather than worrying excessively about the commit graph structure.
+4. Create new revisions more frequently rather than less, but don't make a new revision for every tiny change. Keep them conceptually aligned.
+5. Keep your approach simple and straightforward.
+
+Remember:
+- Never use git commands or interact with .git files.
+- Don't attempt to push changes directly to the remote repository.
+- If you're unsure about a jj command or operation, it's better to ask for clarification than to guess. (Or look it up on the web if an appropriate tool is available)
+
+---
+
+When you've completed the task, provide a summary of the actions you took using jj commands. Include any important decisions you made regarding revision creation or data management.
+
+Your final output should be structured as follows:
+<jj_actions>
+[List the jj commands you used and briefly explain each action]
+</jj_actions>
+
+<summary>
+[Provide a brief summary of what you accomplished and any key decisions you made]
+</summary>
